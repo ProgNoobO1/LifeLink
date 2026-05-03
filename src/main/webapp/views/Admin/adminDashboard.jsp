@@ -567,11 +567,11 @@
                         </div>
                     </div>
                     <div class="quick-actions" style="padding-top:.3rem;">
-                        <button class="qa-btn qa-red">
+                        <a href="${pageContext.request.contextPath}/admin/users?action=add" class="qa-btn qa-red" style="text-decoration:none;">
                             <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                             Add User
                             <svg class="qa-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                        </button>
+                        </a>
                         <button class="qa-btn qa-dark">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             Generate Report
