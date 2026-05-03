@@ -1,39 +1,15 @@
 package backend.model;
 
-import jakarta.persistence.*;
-
-@Entity
-@Table(name = "users")
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
-
-    @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
-
-    @Column(unique = true, nullable = false, length = 100)
     private String email;
-
-    @Column(length = 20)
     private String phone;
-
-    @Column(name = "blood_group", length = 5)
     private String bloodGroup;
-
-    @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private Role role;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
     private Status status = Status.ACTIVE;
 
     public enum Role {

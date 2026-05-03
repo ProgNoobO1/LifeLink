@@ -3,6 +3,7 @@ package backend.utils;
 import backend.model.User;
 import backend.service.UserService;
 import backend.service.AuthException;
+import backend.utils.DBConnection;
 
 /**
  * Development seeder — populates the database with test users.
@@ -68,6 +69,6 @@ public class Seeder {
 
     public static void main(String[] args) {
         seed();
-        HibernateUtil.shutdown();
+        DBConnection.close();
     }
 }
