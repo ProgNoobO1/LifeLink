@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request Details - LifeLink</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <jsp:include page="partials/head_styles.jsp" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -24,13 +24,13 @@
                 <div>
                     <div class="card-premium">
                         <div class="request-header" style="padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-light); margin-bottom: 1.5rem;">
-                            <img src="https://i.pravatar.cc/150?u=99" class="user-avatar" style="width: 64px; height: 64px;">
+                            <div class="stat-icon icon-red" style="width: 64px; height: 64px; font-size: 2rem;"><i class="fas fa-hospital"></i></div>
                             <div style="flex: 1;">
-                                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Patient Name</span>
-                                <h2 style="font-size: 1.5rem;">Sarah Williams</h2>
-                                <p style="font-size: 0.85rem; color: var(--text-muted);">Patient ID: PAT-9082</p>
+                                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Source Hospital</span>
+                                <h2 style="font-size: 1.5rem;">${req != null ? req.hospitalName : 'Hospital'}</h2>
+                                <p style="font-size: 0.85rem; color: var(--text-muted);">${req != null ? req.location : ''}</p>
                             </div>
-                            <span class="badge-urgency urgency-high" style="font-size: 0.85rem; padding: 0.4rem 1rem;"><i class="fas fa-exclamation-circle"></i> High Urgency</span>
+                            <span class="badge-urgency urgency-high" style="font-size: 0.85rem; padding: 0.4rem 1rem;"><i class="fas fa-exclamation-circle"></i> Urgent Request</span>
                         </div>
 
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
@@ -71,16 +71,10 @@
                         </div>
 
                         <div class="card-premium" style="background: var(--background-gray); box-shadow: none;">
-                            <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem;"><i class="fas fa-comment-medical"></i> Reason for Request</span>
+                            <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem;"><i class="fas fa-comment-medical"></i> Request Message</span>
                             <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-main);">
-                                Patient Sarah Williams requires ${req != null ? req.bloodGroup : 'O+'} blood urgently for a major surgical procedure scheduled tomorrow morning. She was admitted following an emergency and lost significant blood volume. The medical team has confirmed that 2 units are needed to stabilize her condition ahead of surgery.
+                                Hospital is requesting ${req != null ? req.bloodGroup : ''} blood donation at ${req != null ? req.location : ''}. Please review the details and respond as soon as possible.
                             </p>
-                            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light); display: flex; align-items: center; gap: 0.75rem;">
-                                <img src="https://i.pravatar.cc/150?u=doc1" class="user-avatar" style="width: 32px; height: 32px;">
-                                <div style="font-size: 0.8rem;">
-                                    <span style="font-weight: 600;">Submitted by Dr. Michael Patel</span> • Attending Surgeon
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>

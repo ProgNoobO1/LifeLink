@@ -9,9 +9,11 @@ public class Donor {
     private String location;
     private boolean isAvailable;
 
+    private java.sql.Timestamp lastDonationDate;
+
     public Donor() {}
 
-    public Donor(int id, String name, String email, String phone, String bloodGroup, String location, boolean isAvailable) {
+    public Donor(int id, String name, String email, String phone, String bloodGroup, String location, boolean isAvailable, java.sql.Timestamp lastDonationDate) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -19,6 +21,7 @@ public class Donor {
         this.bloodGroup = bloodGroup;
         this.location = location;
         this.isAvailable = isAvailable;
+        this.lastDonationDate = lastDonationDate;
     }
 
     public int getId() { return id; }
@@ -41,4 +44,7 @@ public class Donor {
 
     public boolean isAvailable() { return isAvailable; }
     public void setAvailable(boolean isAvailable) { this.isAvailable = isAvailable; }
+
+    public java.sql.Timestamp getLastDonationDate() { return lastDonationDate; }
+    public void setLastDonationDate(java.sql.Timestamp lastDonationDate) { this.lastDonationDate = lastDonationDate; }
 }

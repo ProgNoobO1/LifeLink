@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Donation History - LifeLink</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <jsp:include page="partials/head_styles.jsp" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -21,22 +21,8 @@
                 <div class="stat-card-white" style="flex-direction: row; align-items: center; gap: 1.5rem;">
                     <div class="stat-icon icon-red" style="width: 50px; height: 50px;"><i class="fas fa-tint"></i></div>
                     <div>
-                        <span class="value" style="font-size: 1.5rem;">5</span>
+                        <span class="value" style="font-size: 1.5rem;">${totalDonations}</span>
                         <span class="label">Total Donations</span>
-                    </div>
-                </div>
-                <div class="stat-card-white" style="flex-direction: row; align-items: center; gap: 1.5rem;">
-                    <div class="stat-icon icon-red" style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); color: #3B82F6;"><i class="fas fa-flask"></i></div>
-                    <div>
-                        <span class="value" style="font-size: 1.5rem;">6</span>
-                        <span class="label">Total Units</span>
-                    </div>
-                </div>
-                <div class="stat-card-white" style="flex-direction: row; align-items: center; gap: 1.5rem;">
-                    <div class="stat-icon icon-green" style="width: 50px; height: 50px;"><i class="fas fa-heart"></i></div>
-                    <div>
-                        <span class="value" style="font-size: 1.5rem;">15</span>
-                        <span class="label">Lives Saved</span>
                     </div>
                 </div>
             </div>
@@ -98,14 +84,6 @@
                 </div>
             </div>
 
-            <!-- Promotion Card -->
-            <div style="background: rgba(217, 4, 41, 0.03); border: 1px solid rgba(217, 4, 41, 0.1); padding: 1.5rem; border-radius: 16px; display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <div class="stat-icon icon-red" style="width: 40px; height: 40px;"><i class="fas fa-info-circle"></i></div>
-                    <p style="font-size: 0.9rem;">Your next eligible donation date is <span style="font-weight: 700; color: var(--active-red);">October 20, 2024</span>. Keep donating to reach Hero donor status!</p>
-                </div>
-                <button class="btn-premium btn-primary">Book Next Session</button>
-            </div>
         </div>
     </main>
 </body>

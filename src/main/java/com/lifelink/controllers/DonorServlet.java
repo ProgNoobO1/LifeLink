@@ -3,6 +3,7 @@ package com.lifelink.controllers;
 import com.lifelink.dao.DonorDAO;
 import com.lifelink.models.BloodRequest;
 import com.lifelink.models.Donor;
+import com.lifelink.models.Notification;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -28,13 +29,16 @@ public class DonorServlet extends HttpServlet {
         String path = request.getPathInfo();
         if (path == null) path = "/dashboard";
         
-        // Simulating logged-in user for demonstration (id=1)
+        // Authenticated user check
         HttpSession session = request.getSession();
-        Integer donorId = (Integer) session.getAttribute("donorId");
-        if (donorId == null) {
-            donorId = 1; // Default to 1 for testing purposes
-            session.setAttribute("donorId", donorId);
+        com.lifelink.models.User user = (com.lifelink.models.User) session.getAttribute("user");
+        
+        if (user == null || !"Donor".equals(user.getRole())) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
+        
+        int donorId = user.getId();
 
         switch (path) {
             case "/dashboard":
@@ -45,6 +49,9 @@ public class DonorServlet extends HttpServlet {
                 break;
             case "/history":
                 showHistory(request, response, donorId);
+                break;
+            case "/requests":
+                showRequests(request, response, donorId);
                 break;
             case "/requestDetails":
                 showRequestDetails(request, response, donorId);
@@ -79,8 +86,14 @@ public class DonorServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
         HttpSession session = request.getSession();
-        Integer donorId = (Integer) session.getAttribute("donorId");
-        if (donorId == null) donorId = 1;
+        com.lifelink.models.User user = (com.lifelink.models.User) session.getAttribute("user");
+        
+        if (user == null || !"Donor".equals(user.getRole())) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        
+        int donorId = user.getId();
 
         switch (path) {
             case "/profile":
@@ -96,22 +109,82 @@ public class DonorServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/donor/dashboard");
                 break;
         }
+
+    private List<Notification> getNotifications(Donor donor, List<BloodRequest> requests) {
+        List<Notification> notifications = new java.util.ArrayList<>();
+        
+        if (requests != null) {
+            for (BloodRequest req : requests) {
+                notifications.add(new Notification(
+                    "Request",
+                    "New " + req.getBloodGroup() + " request from " + req.getHospitalName(),
+                    "fas fa-tint",
+                    "Just now"
+                ));
+            }
+        }
+        
+        if (donor != null && !donor.isAvailable() && donor.getLastDonationDate() != null) {
+            long diffInMillies = Math.abs(System.currentTimeMillis() - donor.getLastDonationDate().getTime());
+            long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+            if (diffInDays >= 15) {
+                notifications.add(new Notification(
+                    "Renewal",
+                    "You are now eligible to donate again! Mark yourself as available.",
+                    "fas fa-check-circle",
+                    "Reminder"
+                ));
+            }
+        }
+        
+        return notifications;
+    }
     }
 
     private void showDashboard(HttpServletRequest request, HttpServletResponse response, int donorId) throws ServletException, IOException {
         Donor donor = donorDAO.getDonorById(donorId);
         List<BloodRequest> requests = donorDAO.getRequestsForDonor(donorId);
+        List<BloodRequest> history = donorDAO.getDonationHistory(donorId);
+        
+        int totalDonations = history.size();
+        
+        List<Notification> notifications = getNotifications(donor, requests);
         
         request.setAttribute("donor", donor);
         request.setAttribute("requests", requests);
+        request.setAttribute("history", history);
+        request.setAttribute("notifications", notifications);
+        request.setAttribute("totalDonations", totalDonations);
         request.setAttribute("pageTitle", "Donor Dashboard");
         request.setAttribute("pageSubtitle", "Welcome back, " + (donor != null ? donor.getName() : "Hero") + "! You're making a difference.");
         request.getRequestDispatcher("/views/donor_dashboard.jsp").forward(request, response);
     }
 
+    private void showRequests(HttpServletRequest request, HttpServletResponse response, int donorId) throws ServletException, IOException {
+        Donor donor = donorDAO.getDonorById(donorId);
+        List<BloodRequest> requests = donorDAO.getRequestsForDonor(donorId);
+        List<Notification> notifications = getNotifications(donor, requests);
+        request.setAttribute("donor", donor);
+        request.setAttribute("requests", requests);
+        request.setAttribute("notifications", notifications);
+        request.setAttribute("pageTitle", "Incoming Requests");
+        request.setAttribute("pageSubtitle", "Urgent blood requests matching your group.");
+        request.getRequestDispatcher("/views/donor_requests.jsp").forward(request, response);
+    }
+
     private void showProfile(HttpServletRequest request, HttpServletResponse response, int donorId) throws ServletException, IOException {
         Donor donor = donorDAO.getDonorById(donorId);
+        List<BloodRequest> history = donorDAO.getDonationHistory(donorId);
+        List<BloodRequest> requests = donorDAO.getRequestsForDonor(donorId);
+        
+        int totalDonations = history.size();
+        
+        List<Notification> notifications = getNotifications(donor, requests);
+        
         request.setAttribute("donor", donor);
+        request.setAttribute("requests", requests);
+        request.setAttribute("notifications", notifications);
+        request.setAttribute("totalDonations", totalDonations);
         request.setAttribute("pageTitle", "My Profile");
         request.setAttribute("pageSubtitle", "Manage your personal and medical information.");
         request.getRequestDispatcher("/views/donor_profile.jsp").forward(request, response);
@@ -119,9 +192,16 @@ public class DonorServlet extends HttpServlet {
 
     private void showHistory(HttpServletRequest request, HttpServletResponse response, int donorId) throws ServletException, IOException {
         List<BloodRequest> history = donorDAO.getDonationHistory(donorId);
+        List<BloodRequest> requests = donorDAO.getRequestsForDonor(donorId);
         Donor donor = donorDAO.getDonorById(donorId);
+        
+        int totalDonations = history.size();
+        
         request.setAttribute("donor", donor);
         request.setAttribute("history", history);
+        request.setAttribute("requests", requests);
+        request.setAttribute("notifications", getNotifications(donor, requests));
+        request.setAttribute("totalDonations", totalDonations);
         request.setAttribute("pageTitle", "My Donation History");
         request.setAttribute("pageSubtitle", "A complete record of all your blood donations.");
         request.getRequestDispatcher("/views/donor_history.jsp").forward(request, response);
@@ -141,14 +221,23 @@ public class DonorServlet extends HttpServlet {
 
     private void toggleAvailability(HttpServletRequest request, HttpServletResponse response, int donorId) throws IOException {
         boolean isAvailable = Boolean.parseBoolean(request.getParameter("isAvailable"));
-        donorDAO.updateAvailability(donorId, isAvailable);
-        response.sendRedirect(request.getContextPath() + "/donor/dashboard");
+        boolean success = donorDAO.updateAvailability(donorId, isAvailable);
+        if (!success && isAvailable) {
+            response.sendRedirect(request.getContextPath() + "/donor/dashboard?error=donation_limit");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/donor/dashboard");
+        }
     }
 
     private void updateRequestStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int requestId = Integer.parseInt(request.getParameter("requestId"));
         String status = request.getParameter("status"); // 'Accepted' or 'Rejected'
-        donorDAO.updateRequestStatus(requestId, status);
-        response.sendRedirect(request.getContextPath() + "/donor/dashboard");
+        boolean success = donorDAO.updateRequestStatus(requestId, status);
+        
+        if (success && status.equals("Accepted")) {
+            response.sendRedirect(request.getContextPath() + "/donor/dashboard?success=accepted");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/donor/dashboard");
+        }
     }
 }

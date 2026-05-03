@@ -17,7 +17,7 @@
             </a>
         </li>
         <li class="menu-item">
-            <a href="${pageContext.request.contextPath}/donor/dashboard" class="menu-link">
+            <a href="${pageContext.request.contextPath}/donor/requests" class="menu-link ${requestScope['jakarta.servlet.forward.path_info'] == '/requests' ? 'active' : ''}">
                 <i class="fas fa-hand-holding-medical"></i> Incoming Requests
                 <span class="menu-badge">${requests != null ? requests.size() : 0}</span>
             </a>
@@ -34,7 +34,7 @@
             <i class="fas fa-sign-out-alt"></i> Logout
         </a>
         <div class="user-mini-profile">
-            <img src="https://i.pravatar.cc/150?u=${donor.email}" class="user-avatar" alt="Avatar">
+            <div class="stat-icon icon-red" style="width: 32px; height: 32px; font-size: 0.8rem;"><i class="fas fa-user"></i></div>
             <div class="user-info-text">
                 <span class="name">${donor.name}</span>
                 <span class="role">Blood Type: ${donor.bloodGroup}</span>

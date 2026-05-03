@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LifeLink - Blood Donation Management System</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <jsp:include page="views/partials/head_styles.jsp" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { display: block; }

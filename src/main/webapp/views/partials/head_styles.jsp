@@ -1,3 +1,5 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
@@ -376,7 +378,7 @@ body {
 .btn-secondary { background: var(--white); color: var(--text-main); border: 1px solid var(--border-light); }
 .btn-secondary:hover { background: var(--background-gray); }
 
-/* Switch for Availability */
+/* Status Pills */
 .status-pill {
     padding: 0.2rem 0.6rem;
     border-radius: 20px;
@@ -385,3 +387,112 @@ body {
 }
 
 .status-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--active-red);
+    box-shadow: 0 0 0 3px rgba(217, 4, 41, 0.1);
+}
+/* Notification Dropdown */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-light);
+    margin-top: 1rem;
+    display: none;
+    flex-direction: column;
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.notification-dropdown.show {
+    display: flex;
+}
+
+.notification-header {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-light);
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    gap: 1rem;
+    transition: var(--transition);
+    text-decoration: none;
+    color: inherit;
+}
+
+.notification-item:hover {
+    background: var(--background-gray);
+}
+
+.notification-item i {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    background: rgba(217, 4, 41, 0.1);
+    color: var(--active-red);
+}
+
+.notification-item.renewal i {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+}
+
+.notification-body {
+    flex: 1;
+}
+
+.notification-text {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.notification-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+</style>

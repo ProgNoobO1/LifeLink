@@ -2,92 +2,153 @@ package com.lifelink.dao;
 
 import com.lifelink.models.Donor;
 import com.lifelink.models.BloodRequest;
-import java.sql.Timestamp;
+import com.lifelink.utils.DBConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * MOCK DAO for Frontend Development
- * This version does not require a database connection.
- */
 public class DonorDAO {
 
-    private static Donor mockDonor;
-    private static List<BloodRequest> mockRequests;
-
-    static {
-        // Initialize sample data
-        mockDonor = new Donor();
-        mockDonor.setId(1);
-        mockDonor.setName("Alex Morgan");
-        mockDonor.setEmail("alex.morgan@example.com");
-        mockDonor.setPhone("+1 (555) 234-7890");
-        mockDonor.setBloodGroup("O+");
-        mockDonor.setLocation("Downtown, New York");
-        mockDonor.setAvailable(true);
-
-        mockRequests = new ArrayList<>();
-        
-        BloodRequest r1 = new BloodRequest();
-        r1.setId(101);
-        r1.setHospitalName("City General Hospital");
-        r1.setBloodGroup("O+");
-        r1.setLocation("Central District");
-        r1.setStatus("Pending");
-        r1.setRequestDate(new Timestamp(System.currentTimeMillis() - 3600000));
-        mockRequests.add(r1);
-
-        BloodRequest r2 = new BloodRequest();
-        r2.setId(102);
-        r2.setHospitalName("Saint Mary's Medical Center");
-        r2.setBloodGroup("O+");
-        r2.setLocation("North Side");
-        r2.setStatus("Accepted");
-        r2.setRequestDate(new Timestamp(System.currentTimeMillis() - 86400000));
-        mockRequests.add(r2);
-
-        BloodRequest r3 = new BloodRequest();
-        r3.setId(103);
-        r3.setHospitalName("Children's Health Clinic");
-        r3.setBloodGroup("O+");
-        r3.setLocation("East Wing");
-        r3.setStatus("Completed");
-        r3.setRequestDate(new Timestamp(System.currentTimeMillis() - 172800000));
-        mockRequests.add(r3);
-    }
-
     public Donor getDonorById(int id) {
-        return mockDonor;
+        String sql = "SELECT * FROM donors WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Donor(
+                        rs.getInt("user_id"),
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("phone"),
+                        rs.getString("blood_group"),
+                        rs.getString("location"),
+                        rs.getBoolean("is_available"),
+                        rs.getTimestamp("last_donation_date")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public boolean updateProfile(Donor donor) {
-        mockDonor.setName(donor.getName());
-        mockDonor.setPhone(donor.getPhone());
-        mockDonor.setBloodGroup(donor.getBloodGroup());
-        mockDonor.setLocation(donor.getLocation());
-        return true;
+        String sql = "UPDATE donors SET name = ?, phone = ?, blood_group = ?, location = ? WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, donor.getName());
+            pstmt.setString(2, donor.getPhone());
+            pstmt.setString(3, donor.getBloodGroup());
+            pstmt.setString(4, donor.getLocation());
+            pstmt.setInt(5, donor.getId());
+            
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public boolean updateAvailability(int donorId, boolean isAvailable) {
-        mockDonor.setAvailable(isAvailable);
-        return true;
+        if (isAvailable) {
+            Donor donor = getDonorById(donorId);
+            if (donor != null && donor.getLastDonationDate() != null) {
+                long diffInMillies = Math.abs(System.currentTimeMillis() - donor.getLastDonationDate().getTime());
+                long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+                if (diffInDays < 15) {
+                    return false; // Cannot be available within 15 days
+                }
+            }
+        }
+        
+        String sql = "UPDATE donors SET is_available = ? WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setBoolean(1, isAvailable);
+            pstmt.setInt(2, donorId);
+            
+            return pstmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public List<BloodRequest> getRequestsForDonor(int donorId) {
-        List<BloodRequest> active = new ArrayList<>();
-        for (BloodRequest r : mockRequests) {
-            if (!"Completed".equals(r.getStatus())) {
-                active.add(r);
+        List<BloodRequest> requests = new ArrayList<>();
+        String sql = "SELECT br.*, h.name as hospital_name FROM blood_requests br " +
+                     "JOIN hospitals h ON br.hospital_id = h.hospital_id " +
+                     "WHERE br.donor_id = ? AND br.status != 'Completed' " +
+                     "ORDER BY br.request_date DESC";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, donorId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    BloodRequest br = new BloodRequest();
+                    br.setId(rs.getInt("request_id"));
+                    br.setHospitalId(rs.getInt("hospital_id"));
+                    br.setDonorId(rs.getInt("donor_id"));
+                    br.setBloodGroup(rs.getString("blood_group"));
+                    br.setLocation(rs.getString("location"));
+                    br.setStatus(rs.getString("status"));
+                    br.setRequestDate(rs.getTimestamp("request_date"));
+                    br.setHospitalName(rs.getString("hospital_name"));
+                    requests.add(br);
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return active;
+        return requests;
     }
 
     public boolean updateRequestStatus(int requestId, String status) {
-        for (BloodRequest r : mockRequests) {
-            if (r.getId() == requestId) {
-                r.setStatus(status);
-                return true;
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Update Request Status
+            String sqlRequest = "UPDATE blood_requests SET status = ? WHERE request_id = ?";
+            String finalStatus = status.equals("Accepted") ? "Completed" : status;
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlRequest)) {
+                pstmt.setString(1, finalStatus);
+                pstmt.setInt(2, requestId);
+                pstmt.executeUpdate();
+            }
+
+            // 2. If Accepted (now Completed), update Donor status
+            if (status.equals("Accepted")) {
+                String sqlDonor = "UPDATE donors d JOIN blood_requests br ON d.user_id = br.donor_id " +
+                                 "SET d.is_available = false, d.last_donation_date = CURRENT_TIMESTAMP " +
+                                 "WHERE br.request_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlDonor)) {
+                    pstmt.setInt(1, requestId);
+                    pstmt.executeUpdate();
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) { e.printStackTrace(); }
             }
         }
         return false;
@@ -95,10 +156,31 @@ public class DonorDAO {
 
     public List<BloodRequest> getDonationHistory(int donorId) {
         List<BloodRequest> history = new ArrayList<>();
-        for (BloodRequest r : mockRequests) {
-            if ("Completed".equals(r.getStatus())) {
-                history.add(r);
+        String sql = "SELECT br.*, h.name as hospital_name FROM blood_requests br " +
+                     "JOIN hospitals h ON br.hospital_id = h.hospital_id " +
+                     "WHERE br.donor_id = ? AND br.status = 'Completed' " +
+                     "ORDER BY br.request_date DESC";
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, donorId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    BloodRequest br = new BloodRequest();
+                    br.setId(rs.getInt("request_id"));
+                    br.setHospitalId(rs.getInt("hospital_id"));
+                    br.setDonorId(rs.getInt("donor_id"));
+                    br.setBloodGroup(rs.getString("blood_group"));
+                    br.setLocation(rs.getString("location"));
+                    br.setStatus(rs.getString("status"));
+                    br.setRequestDate(rs.getTimestamp("request_date"));
+                    br.setHospitalName(rs.getString("hospital_name"));
+                    history.add(br);
+                }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return history;
     }
