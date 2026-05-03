@@ -1,0 +1,70 @@
+package backend.servlet;
+
+import backend.model.User;
+import backend.service.AuthException;
+import backend.service.UserService;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.*;
+
+import java.io.IOException;
+
+public class AddUserServlet extends HttpServlet {
+
+    private final UserService userService = new UserService();
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        if (session == null || session.getAttribute("currentUser") == null) {
+            resp.sendRedirect(req.getContextPath() + "/views/login.jsp");
+            return;
+        }
+
+        User admin = (User) session.getAttribute("currentUser");
+        if (admin.getRole() != User.Role.ADMIN) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
+            return;
+        }
+
+        String firstName = req.getParameter("firstName");
+        String lastName = req.getParameter("lastName");
+        String email = req.getParameter("email");
+        String phone = req.getParameter("phone");
+        String bloodGroup = req.getParameter("bloodGroup");
+        String password = req.getParameter("password");
+        String roleStr = req.getParameter("role");
+        String statusStr = req.getParameter("status");
+
+        try {
+            User.Role role = User.Role.valueOf(roleStr);
+            User.Status status = User.Status.valueOf(statusStr);
+
+            userService.registerUser(firstName, lastName, email, phone,
+                    bloodGroup, password, role, status);
+
+            session.setAttribute("successMessage", "User created successfully!");
+            resp.sendRedirect(req.getContextPath() + "/admin/users");
+
+        } catch (AuthException e) {
+            req.setAttribute("error", e.getMessage());
+            req.setAttribute("firstName", firstName);
+            req.setAttribute("lastName", lastName);
+            req.setAttribute("email", email);
+            req.setAttribute("phone", phone);
+            req.setAttribute("bloodGroup", bloodGroup);
+            req.setAttribute("role", roleStr);
+            req.setAttribute("status", statusStr);
+            req.getRequestDispatcher("/views/Admin/adminManageUsers.jsp").forward(req, resp);
+        } catch (IllegalArgumentException e) {
+            req.setAttribute("error", "Invalid role or status selected.");
+            req.setAttribute("firstName", firstName);
+            req.setAttribute("lastName", lastName);
+            req.setAttribute("email", email);
+            req.setAttribute("phone", phone);
+            req.setAttribute("bloodGroup", bloodGroup);
+            req.setAttribute("role", roleStr);
+            req.setAttribute("status", statusStr);
+            req.getRequestDispatcher("/views/Admin/adminManageUsers.jsp").forward(req, resp);
+        }
+    }
+}

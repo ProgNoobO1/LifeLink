@@ -5,7 +5,13 @@
   Time: 23:58
   To change this template use File | Settings | File Templates.
 --%>
+<%@ page import="backend.model.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    User currentAdmin = (User) session.getAttribute("currentUser");
+    String adminName = (currentAdmin != null) ? currentAdmin.getFullName() : "Admin User";
+    String adminEmail = (currentAdmin != null) ? currentAdmin.getEmail() : "admin@lifelink.com";
+%>
 <html>
 <head>
     <title> Admin Top bar</title>
@@ -132,14 +138,16 @@
       <span class="notif-dot">3</span>
     </div>
 
-    <div class="topbar-user">
-      <div class="user-avatar"></div>
-      <div>
-        <div class="uname">Admin User</div>
-        <div class="uemail">admin@lifelink.com</div>
+    <a href="<%= request.getContextPath() %>/logout" style="text-decoration:none;">
+      <div class="topbar-user">
+        <div class="user-avatar"></div>
+        <div>
+          <div class="uname"><%= adminName %></div>
+          <div class="uemail"><%= adminEmail %></div>
+        </div>
+        <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
-      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
+    </a>
   </div>
 </header>
 

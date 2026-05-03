@@ -361,7 +361,13 @@
             <!-- ═══════════ STEP 7 & 8: Form ═══════════
                  In Java (JSP), action="/LoginServlet" method="post"
                  In pure HTML demo, we prevent default and show alert -->
-            <form id="loginForm" novalidate>
+            <% if (request.getAttribute("error") != null) { %>
+                <div style="background: #fee2e2; color: #991b1b; padding: .75rem 1rem; border-radius: 10px; font-size: .85rem; font-weight: 600; margin-bottom: 1rem;">
+                    <%= request.getAttribute("error") %>
+                </div>
+            <% } %>
+
+            <form id="loginForm" action="<%= request.getContextPath() %>/login" method="post" novalidate>
 
                 <!-- Email Field -->
                 <div class="form-group" style="margin-bottom:1rem;">
@@ -456,22 +462,18 @@
         eyeIcon.innerHTML = isHidden ? eyeOpen : eyeClosed;
     });
 
-    // --- Form submit handler (client-side validation demo) ---
-    // In Java (JSP), this form posts to LoginServlet which handles auth.
+    // --- Form submit handler (client-side validation) ---
     document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // Remove this line in JSP — let the form POST normally
-
         const email    = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
         if (!email || !password) {
+            e.preventDefault();
             alert('Please fill in both email and password.');
             return;
         }
 
-        // In a real Java Servlet app, the form would POST to /LoginServlet
-        // and the servlet would verify credentials from the database.
-        alert(`✅ Demo Login\nEmail: ${email}\n\nIn your Java app, this would POST to LoginServlet.`);
+        // Form will POST normally to LoginServlet
     });
 </script>
 
