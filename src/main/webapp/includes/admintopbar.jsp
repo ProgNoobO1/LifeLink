@@ -12,10 +12,6 @@
     String adminName = (currentAdmin != null) ? currentAdmin.getFullName() : "Admin User";
     String adminEmail = (currentAdmin != null) ? currentAdmin.getEmail() : "admin@lifelink.com";
 %>
-<html>
-<head>
-    <title> Admin Top bar</title>
-</head>
 <style>
 
 
@@ -117,14 +113,25 @@
 
   .topbar-user svg { width: 16px; height: 16px; fill: none; stroke: var(--text-mid); stroke-width: 2; }
 </style>
-<body>
-
-
 <!-- TOP BAR -->
 <header class="topbar">
+  <%
+      String topUri = request.getRequestURI();
+      String topForwardUri = (String) request.getAttribute("jakarta.servlet.forward.request_uri");
+      if (topForwardUri != null) topUri = topForwardUri;
+      String pageTitle = "Admin Dashboard";
+      String pageSubtitle = "Welcome back! Here's what's happening today.";
+      if (topUri != null && topUri.contains("/admin/users")) {
+          pageTitle = "Manage Users";
+          pageSubtitle = "View, add, edit, and manage system users.";
+      } else if (topUri != null && topUri.contains("/admin/requests")) {
+          pageTitle = "Manage Requests";
+          pageSubtitle = "Review and process blood requests.";
+      }
+  %>
   <div class="topbar-title">
-    <h1>Admin Dashboard</h1>
-    <p>Welcome back! Here's what's happening today. </p>
+    <h1><%= pageTitle %></h1>
+    <p><%= pageSubtitle %></p>
   </div>
 
   <div class="topbar-search">
@@ -150,6 +157,3 @@
     </a>
   </div>
 </header>
-
-</body>
-</html>

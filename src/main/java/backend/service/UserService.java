@@ -59,6 +59,7 @@ public class UserService {
         if (lastName == null || lastName.trim().isEmpty()) throw new AuthException("Last name is required.");
         if (email == null || email.trim().isEmpty()) throw new AuthException("Email is required.");
         if (role == null) throw new AuthException("Role is required.");
+        if (status == null) throw new AuthException("Status is required.");
 
         User existing = userDAO.findById(id);
         if (existing == null) throw new AuthException("User not found.");

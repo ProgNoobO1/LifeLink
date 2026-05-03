@@ -17,17 +17,13 @@ public class AuthService {
             throw new AuthException("Email and password are required.");
         }
 
-        User user = userDAO.findByEmail(email.trim());
-        if (user == null) {
+        User user = userDAO.findByEmail(email.trim().toLowerCase());
+        if (user == null || !PasswordUtil.verify(password, user.getPasswordHash())) {
             throw new AuthException("Invalid email or password.");
         }
 
         if (user.getStatus() != User.Status.ACTIVE) {
-            throw new AuthException("Your account is " + user.getStatus().toString().toLowerCase() + ". Please contact support.");
-        }
-
-        if (!PasswordUtil.verify(password, user.getPasswordHash())) {
-            throw new AuthException("Invalid email or password.");
+            throw new AuthException("Your account is inactive. Please contact support.");
         }
 
         return user;

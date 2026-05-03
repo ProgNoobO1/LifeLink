@@ -1,8 +1,15 @@
-<html>
-<body>
-<a href="views/login.jsp">Go to Login</a>
-<a href="views/Register.jsp">Go to Register</a>
-<a href="views/Admin/adminDashboard.jsp">Go to Admin Dashboard</a>
-<a href="views/Admin/adminManageUsers.jsp">Go to ManageUsers</a>
-</body>
-</html>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    // If already logged in, redirect accordingly
+    if (session != null && session.getAttribute("currentUser") != null) {
+        backend.model.User user = (backend.model.User) session.getAttribute("currentUser");
+        if (user.getRole() == backend.model.User.Role.ADMIN) {
+            response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/login");
+        }
+        return;
+    }
+    // Otherwise forward to the login page
+    request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+%>

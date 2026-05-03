@@ -13,6 +13,18 @@ public class LogoutServlet extends HttpServlet {
         if (session != null) {
             session.invalidate();
         }
+
+        // Clear JSESSIONID cookie
+        Cookie jsessionCookie = new Cookie("JSESSIONID", "");
+        jsessionCookie.setMaxAge(0);
+        jsessionCookie.setPath(req.getContextPath());
+        resp.addCookie(jsessionCookie);
+
+        // Prevent cached admin pages from showing via back button
+        resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        resp.setHeader("Pragma", "no-cache");
+        resp.setDateHeader("Expires", 0);
+
         resp.sendRedirect(req.getContextPath() + "/views/login.jsp");
     }
 

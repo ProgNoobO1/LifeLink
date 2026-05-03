@@ -3,6 +3,8 @@
   Created: 02/05/2026
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -425,9 +427,7 @@
 <!--Side Bar-->
 <jsp:include page="/includes/sidebar.jsp" />
 
-<%--═════════════════--%>
-<%--     MAIN--%>
-<%--═══════════════════════════════════════ -->--%>
+<!-- MAIN -->
 <div class="main">
 
     <jsp:include page="/includes/admintopbar.jsp" />
@@ -443,9 +443,9 @@
                 <div class="stat-icon red">
                     <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                 </div>
-                <div class="stat-num">1,240</div>
+                <div class="stat-num">${totalDonors}</div>
                 <div class="stat-label">Total Donors</div>
-                <div class="stat-bar" style="background: linear-gradient(90deg, var(--red) 75%, var(--red-light) 75%);"></div>
+                <div class="stat-bar" style="background: linear-gradient(90deg, var(--red) ${totalUsers > 0 ? (totalDonors * 100 / totalUsers) : 0}%, var(--red-light) ${totalUsers > 0 ? (totalDonors * 100 / totalUsers) : 0}%);"></div>
             </div>
 
             <div class="stat-card">
@@ -453,9 +453,9 @@
                 <div class="stat-icon blue">
                     <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </div>
-                <div class="stat-num">850</div>
+                <div class="stat-num">${totalRecipients}</div>
                 <div class="stat-label">Total Recipients</div>
-                <div class="stat-bar" style="background: linear-gradient(90deg, #3b82f6 60%, #dbeafe 60%);"></div>
+                <div class="stat-bar" style="background: linear-gradient(90deg, #3b82f6 ${totalUsers > 0 ? (totalRecipients * 100 / totalUsers) : 0}%, #dbeafe ${totalUsers > 0 ? (totalRecipients * 100 / totalUsers) : 0}%);"></div>
             </div>
 
             <div class="stat-card">
@@ -463,9 +463,9 @@
                 <div class="stat-icon amber">
                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </div>
-                <div class="stat-num">45</div>
-                <div class="stat-label">Pending Requests</div>
-                <div class="stat-bar" style="background: linear-gradient(90deg, #f59e0b 40%, #fef3c7 40%);"></div>
+                <div class="stat-num">${totalHospitals}</div>
+                <div class="stat-label">Total Hospitals</div>
+                <div class="stat-bar" style="background: linear-gradient(90deg, #f59e0b ${totalUsers > 0 ? (totalHospitals * 100 / totalUsers) : 0}%, #fef3c7 ${totalUsers > 0 ? (totalHospitals * 100 / totalUsers) : 0}%);"></div>
             </div>
 
             <div class="stat-card">
@@ -473,9 +473,9 @@
                 <div class="stat-icon red">
                     <svg viewBox="0 0 24 24"><path d="M12 2C12 2 4 10 4 15a8 8 0 0016 0C20 10 12 2 12 2z"/></svg>
                 </div>
-                <div class="stat-num">320</div>
-                <div class="stat-label">Blood Units</div>
-                <div class="stat-bar" style="background: linear-gradient(90deg, var(--red) 55%, var(--red-light) 55%);"></div>
+                <div class="stat-num">${totalUsers}</div>
+                <div class="stat-label">Total Users</div>
+                <div class="stat-bar" style="background: linear-gradient(90deg, var(--red) 100%, var(--red-light) 100%);"></div>
             </div>
 
         </div><!-- /stats-row -->
@@ -491,7 +491,7 @@
                         <p>Latest blood request activity</p>
                     </div>
                     <div class="card-actions">
-                        <button class="btn-red-outline">View All</button>
+                        <a href="${pageContext.request.contextPath}/admin/users" class="btn-red-outline" style="text-decoration:none;">View All</a>
                         <button class="btn-outline">
                             <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
                             Filter
@@ -502,55 +502,49 @@
                 <table>
                     <thead>
                     <tr>
-                        <th>Request ID</th>
+                        <th>User ID</th>
                         <th>Name</th>
                         <th>Blood Group</th>
-                        <th>Date</th>
+                        <th>Role</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>
                     </thead>
                     <tbody>
+                    <c:forEach items="${recentUsers}" var="u">
                     <tr>
-                        <td><span class="req-id">#REQ-001</span></td>
-                        <td>Sarah Johnson</td>
-                        <td><span class="blood-badge bg-red">A+</span></td>
-                        <td>Jan 15, 2026</td>
-                        <td><span class="status-pill pending">Pending</span></td>
-                        <td><a href="#" class="review-link">Review</a></td>
+                        <td><span class="req-id">#USR-${u.id}</span></td>
+                        <td>${u.firstName} ${u.lastName}</td>
+                        <td>
+                            <c:choose>
+                                <c:when test="${not empty u.bloodGroup}">
+                                    <span class="blood-badge bg-red">${u.bloodGroup}</span>
+                                </c:when>
+                                <c:otherwise>—</c:otherwise>
+                            </c:choose>
+                        </td>
+                        <td>${u.role}</td>
+                        <td>
+                            <c:choose>
+                                <c:when test="${u.status == 'ACTIVE'}">
+                                    <span class="status-pill approved">Active</span>
+                                </c:when>
+                                <c:when test="${u.status == 'INACTIVE'}">
+                                    <span class="status-pill pending">Inactive</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="status-pill rejected">Suspended</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
+                        <td><a href="${pageContext.request.contextPath}/admin/users" class="review-link">View</a></td>
                     </tr>
+                    </c:forEach>
+                    <c:if test="${empty recentUsers}">
                     <tr>
-                        <td><span class="req-id">#REQ-002</span></td>
-                        <td>Michael Chen</td>
-                        <td><span class="blood-badge bg-blue">O-</span></td>
-                        <td>Jan 14, 2026</td>
-                        <td><span class="status-pill approved">Approved</span></td>
-                        <td><a href="#" class="review-link">Review</a></td>
+                        <td colspan="6" style="text-align:center; color:var(--text-light); padding:2rem;">No users found</td>
                     </tr>
-                    <tr>
-                        <td><span class="req-id">#REQ-003</span></td>
-                        <td>Aisha Patel</td>
-                        <td><span class="blood-badge bg-purple">B+</span></td>
-                        <td>Jan 13, 2026</td>
-                        <td><span class="status-pill rejected">Rejected</span></td>
-                        <td><a href="#" class="review-link">Review</a></td>
-                    </tr>
-                    <tr>
-                        <td><span class="req-id">#REQ-004</span></td>
-                        <td>James Osei</td>
-                        <td><span class="blood-badge bg-red">AB+</span></td>
-                        <td>Jan 12, 2026</td>
-                        <td><span class="status-pill pending">Pending</span></td>
-                        <td><a href="#" class="review-link">Review</a></td>
-                    </tr>
-                    <tr>
-                        <td><span class="req-id">#REQ-005</span></td>
-                        <td>Priya Nair</td>
-                        <td><span class="blood-badge bg-teal">O+</span></td>
-                        <td>Jan 11, 2026</td>
-                        <td><span class="status-pill approved">Approved</span></td>
-                        <td><a href="#" class="review-link">Review</a></td>
-                    </tr>
+                    </c:if>
                     </tbody>
                 </table>
             </div><!-- /card -->
@@ -577,11 +571,11 @@
                             Generate Report
                             <svg class="qa-arrow" viewBox="0 0 24 24" style="stroke:white;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
-                        <button class="qa-btn qa-light">
+                        <a href="${pageContext.request.contextPath}/admin/users" class="qa-btn qa-light" style="text-decoration:none;">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            Review Pending
-                            <span class="qa-badge">45</span>
-                        </button>
+                            Manage Users
+                            <span class="qa-badge">${totalUsers}</span>
+                        </a>
                     </div>
                 </div>
 
@@ -596,45 +590,19 @@
                     <div class="chart-area">
                         <div class="chart-wrapper" style="padding-left: 26px;">
                             <div class="y-lines">
-                                <div class="y-line"><span>80</span></div>
-                                <div class="y-line"><span>60</span></div>
-                                <div class="y-line"><span>40</span></div>
-                                <div class="y-line"><span>20</span></div>
+                                <div class="y-line"><span>${maxBloodGroup}</span></div>
+                                <div class="y-line"><span>${maxBloodGroup > 0 ? (maxBloodGroup * 0.75) : 0}</span></div>
+                                <div class="y-line"><span>${maxBloodGroup > 0 ? (maxBloodGroup * 0.5) : 0}</span></div>
+                                <div class="y-line"><span>${maxBloodGroup > 0 ? (maxBloodGroup * 0.25) : 0}</span></div>
                                 <div class="y-line"><span>0</span></div>
                             </div>
                             <div class="bar-chart">
+                                <c:forEach items="${bloodGroupCounts}" var="entry">
                                 <div class="bar-col">
-                                    <div class="bar full"   style="height:62px;"></div>
-                                    <div class="bar-label">A+</div>
+                                    <div class="bar ${entry.value > 0 ? 'full' : 'light-bar'}" style="height:${maxBloodGroup > 0 ? (entry.value * 100 / maxBloodGroup) : 0}px;"></div>
+                                    <div class="bar-label">${entry.key}</div>
                                 </div>
-                                <div class="bar-col">
-                                    <div class="bar light-bar" style="height:20px;"></div>
-                                    <div class="bar-label">A-</div>
-                                </div>
-                                <div class="bar-col">
-                                    <div class="bar full"   style="height:45px;"></div>
-                                    <div class="bar-label">B+</div>
-                                </div>
-                                <div class="bar-col">
-                                    <div class="bar light-bar" style="height:13px;"></div>
-                                    <div class="bar-label">B-</div>
-                                </div>
-                                <div class="bar-col">
-                                    <div class="bar full"   style="height:88px;"></div>
-                                    <div class="bar-label">O+</div>
-                                </div>
-                                <div class="bar-col">
-                                    <div class="bar light-bar" style="height:28px;"></div>
-                                    <div class="bar-label">O-</div>
-                                </div>
-                                <div class="bar-col">
-                                    <div class="bar full"   style="height:34px;"></div>
-                                    <div class="bar-label">AB+</div>
-                                </div>
-                                <div class="bar-col">
-                                    <div class="bar light-bar" style="height:22px;"></div>
-                                    <div class="bar-label">AB-</div>
-                                </div>
+                                </c:forEach>
                             </div>
                         </div>
                     </div>
@@ -655,52 +623,19 @@
 
             <div style="padding: 1.1rem 1.5rem;">
                 <div class="activity-row">
-
+                    <c:forEach items="${recentActivities}" var="act">
                     <div class="activity-card">
-                        <div class="activity-icon" style="background:#d1fae5;">
-                            <svg viewBox="0 0 24 24" fill="#059669"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                        <div class="activity-icon" style="background:${act.iconBg};">
+                            <svg viewBox="0 0 24 24" fill="${act.iconColor}"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                         </div>
-                        <div class="activity-title">New donor registered</div>
-                        <div class="activity-desc">James Osei joined as a donor</div>
-                        <div class="activity-time">2 mins ago</div>
+                        <div class="activity-title">${act.title}</div>
+                        <div class="activity-desc">${act.desc}</div>
+                        <div class="activity-time">${act.time}</div>
                     </div>
-
-                    <div class="activity-card">
-                        <div class="activity-icon" style="background:#fef3c7;">
-                            <svg viewBox="0 0 24 24" fill="#d97706"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-                        </div>
-                        <div class="activity-title">Request submitted</div>
-                        <div class="activity-desc">Sarah needs 2 units of A+</div>
-                        <div class="activity-time">15 mins ago</div>
-                    </div>
-
-                    <div class="activity-card">
-                        <div class="activity-icon" style="background:var(--red-light);">
-                            <svg viewBox="0 0 24 24" fill="var(--red)"><path d="M12 2C12 2 4 10 4 15a8 8 0 0016 0C20 10 12 2 12 2z"/></svg>
-                        </div>
-                        <div class="activity-title">Blood units updated</div>
-                        <div class="activity-desc">O+ stock replenished by 15 units</div>
-                        <div class="activity-time">1 hr ago</div>
-                    </div>
-
-                    <div class="activity-card">
-                        <div class="activity-icon" style="background:#dbeafe;">
-                            <svg viewBox="0 0 24 24" fill="#2563eb"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                        </div>
-                        <div class="activity-title">Request approved</div>
-                        <div class="activity-desc">REQ-002 approved for Michael Chen</div>
-                        <div class="activity-time">3 hrs ago</div>
-                    </div>
-
-                    <div class="activity-card">
-                        <div class="activity-icon" style="background:#f3e8ff;">
-                            <svg viewBox="0 0 24 24" fill="#7c3aed"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
-                        </div>
-                        <div class="activity-title">Report generated</div>
-                        <div class="activity-desc">Monthly summary exported as PDF</div>
-                        <div class="activity-time">5 hrs ago</div>
-                    </div>
-
+                    </c:forEach>
+                    <c:if test="${empty recentActivities}">
+                    <div style="text-align:center; color:var(--text-light); padding:2rem; width:100%;">No recent activity</div>
+                    </c:if>
                 </div>
             </div>
         </div><!-- /activity -->

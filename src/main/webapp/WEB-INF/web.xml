@@ -17,12 +17,30 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>RegisterServlet</servlet-name>
+    <servlet-class>backend.servlet.RegisterServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RegisterServlet</servlet-name>
+    <url-pattern>/register</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>LogoutServlet</servlet-name>
     <servlet-class>backend.servlet.LogoutServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>LogoutServlet</servlet-name>
     <url-pattern>/logout</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>AdminDashboardServlet</servlet-name>
+    <servlet-class>backend.servlet.AdminDashboardServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AdminDashboardServlet</servlet-name>
+    <url-pattern>/admin/dashboard</url-pattern>
   </servlet-mapping>
 
   <servlet>
@@ -69,6 +87,11 @@
     <servlet-name>DeleteUserServlet</servlet-name>
     <url-pattern>/admin/users/delete</url-pattern>
   </servlet-mapping>
+
+  <!-- Listeners -->
+  <listener>
+    <listener-class>backend.listener.AppContextListener</listener-class>
+  </listener>
 
   <!-- Filters -->
   <filter>
