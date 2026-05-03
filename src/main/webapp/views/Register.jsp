@@ -6,11 +6,13 @@
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>Register</title>
-</head>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Register – LifeLink</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 
     <style>
 
@@ -378,6 +380,7 @@
         .login-row a:hover { opacity: .75; }
 
     </style>
+</head>
 <body>
 
 <!-- Nav Bar -->
@@ -452,7 +455,13 @@
                 In Java (JSP), set action="/RegisterServlet" method="post"
                 The servlet handles validation and DB insertion.
             --%>
-            <form id="registerForm" action="/RegisterServlet" method="post" novalidate>
+            <% if (request.getParameter("error") != null) { %>
+                <div style="background: #fee2e2; color: #991b1b; padding: .75rem 1rem; border-radius: 10px; font-size: .85rem; font-weight: 600; margin-bottom: 1rem;">
+                    <%= request.getParameter("error") %>
+                </div>
+            <% } %>
+
+            <form id="registerForm" action="<%= request.getContextPath() %>/register" method="post" novalidate>
 
                 <!-- Full Name -->
                 <div class="form-group">
@@ -534,7 +543,7 @@
                     <p class="role-label">I am a</p>
                     <div class="role-group">
 
-                        <button type="button" class="role-btn active" data-role="donor" id="roleдонор">
+                        <button type="button" class="role-btn active" data-role="donor" id="roleDonor">
                             <svg viewBox="0 0 24 24">
                                 <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
                             </svg>
@@ -615,7 +624,7 @@
 
                 <!-- Login Link -->
                 <p class="login-row" style="margin-top:.9rem;">
-                    Already have an account? <a href="login.jsp">Login</a>
+                    Already have an account? <a href="<%= request.getContextPath() %>/login">Login</a>
                 </p>
 
             </form><!-- /registerForm -->
@@ -666,34 +675,30 @@
 
     /* ── Client-side validation ── */
     document.getElementById('registerForm').addEventListener('submit', function(e) {
-        // Remove e.preventDefault() in production — let the form POST to RegisterServlet
-        e.preventDefault();
-
         const fullName  = document.getElementById('fullName').value.trim();
         const email     = document.getElementById('email').value.trim();
         const password  = document.getElementById('password').value;
         const confirm   = document.getElementById('confirmPassword').value;
 
         if (!fullName || !email || !password || !confirm) {
+            e.preventDefault();
             alert('Please fill in all required fields.');
             return;
         }
 
         if (password !== confirm) {
+            e.preventDefault();
             alert('Passwords do not match. Please try again.');
             return;
         }
 
-        if (password.length < 6) {
-            alert('Password must be at least 6 characters long.');
+        if (password.length < 8) {
+            e.preventDefault();
+            alert('Password must be at least 8 characters long.');
             return;
         }
 
-        // In production, the form POSTs to RegisterServlet which validates
-        // against the DB and creates the user account.
-        alert('✅ Demo Register\nName: ' + fullName + '\nEmail: ' + email +
-            '\nRole: ' + roleInput.value +
-            '\n\nIn your Java app, this would POST to RegisterServlet.');
+        // Form will POST normally to RegisterServlet
     });
 </script>
 

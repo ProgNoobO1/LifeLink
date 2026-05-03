@@ -651,7 +651,7 @@
                   <div class="action-btns">
                     <button class="act-btn act-view" title="View" onclick="openViewUserModal(${user.id})"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
                     <button class="act-btn act-edit" title="Edit" onclick="openEditUserModal(${user.id})"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                    <button class="act-btn act-delete" title="Delete" onclick="openDeleteConfirmModal(${user.id}, '${fn:escapeXml(user.firstName)} ${fn:escapeXml(user.lastName)}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
+                    <button class="act-btn act-delete" title="Delete" onclick="openDeleteConfirmModal(${user.id})"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                   </div>
                 </td>
               </tr>
@@ -812,7 +812,7 @@
       <button type="button" onclick="closeDeleteConfirmModal()">&times;</button>
     </div>
     <div style="padding: 20px;">
-      <p>Are you sure you want to delete <strong id="deleteUserName"></strong>?</p>
+      <p>Are you sure you want to delete user <strong id="deleteUserName"></strong>?</p>
       <p style="color: var(--red); font-size: 13px; margin-top: 10px;">This action cannot be undone.</p>
     </div>
     <form id="deleteUserForm" action="${pageContext.request.contextPath}/admin/users/delete" method="post" style="padding: 0 20px 20px;">
@@ -1039,9 +1039,9 @@
     if (e.target === this) closeEditUserModal();
   });
 
-  function openDeleteConfirmModal(userId, userName) {
+  function openDeleteConfirmModal(userId) {
     document.getElementById('deleteUserId').value = userId;
-    document.getElementById('deleteUserName').textContent = userName;
+    document.getElementById('deleteUserName').textContent = '#USR-' + userId;
     document.getElementById('deleteConfirmModal').style.display = 'flex';
   }
 

@@ -6,6 +6,8 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class UserDAO {
@@ -23,7 +25,7 @@ public class UserDAO {
 
     public User findById(Long id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            return session.get(User.class, id);
+            return session.find(User.class, id);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -62,8 +64,9 @@ public class UserDAO {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            User user = session.get(User.class, id);
+            User user = session.find(User.class, id);
             if (user == null) {
+                transaction.rollback();
                 return false;
             }
             session.remove(user);
@@ -84,7 +87,7 @@ public class UserDAO {
             return query.getResultList();
         } catch (Exception e) {
             e.printStackTrace();
-            return List.of();
+            return Collections.emptyList();
         }
     }
 
@@ -106,6 +109,29 @@ public class UserDAO {
         } catch (Exception e) {
             e.printStackTrace();
             return 0;
+        }
+    }
+
+    public long countByBloodGroup(String bloodGroup) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Query<Long> query = session.createQuery(
+                "SELECT COUNT(*) FROM User WHERE bloodGroup = :bg", Long.class);
+            query.setParameter("bg", bloodGroup);
+            return query.uniqueResult();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    public List<User> findRecent(int limit) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Query<User> query = session.createQuery("FROM User ORDER BY id DESC", User.class);
+            query.setMaxResults(limit);
+            return query.getResultList();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 }

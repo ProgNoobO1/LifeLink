@@ -26,6 +26,8 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+
         String email = req.getParameter("email");
         String password = req.getParameter("password");
 
@@ -53,7 +55,7 @@ public class LoginServlet extends HttpServlet {
     private void redirectByRole(User user, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String contextPath = req.getContextPath();
         if (user.getRole() == User.Role.ADMIN) {
-            resp.sendRedirect(contextPath + "/views/Admin/adminDashboard.jsp");
+            resp.sendRedirect(contextPath + "/admin/dashboard");
         } else {
             resp.sendRedirect(contextPath + "/index.jsp");
         }

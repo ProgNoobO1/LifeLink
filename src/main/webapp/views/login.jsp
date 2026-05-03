@@ -42,6 +42,31 @@
             flex-direction: column;
         }
 
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1.5rem;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            max-width: 1100px;
+            width: 100%;
+            align-items: center;
+        }
+
+        @media (max-width: 860px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 2.5rem;
+            }
+            .hero { order: 2; }
+            .login-card { order: 1; }
+        }
 
         /* ── STEP 5: Left-side hero text ── */
         .hero { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -366,6 +391,11 @@
                     <%= request.getAttribute("error") %>
                 </div>
             <% } %>
+            <% if ("true".equals(request.getParameter("registered"))) { %>
+                <div style="background: #d1fae5; color: #065f46; padding: .75rem 1rem; border-radius: 10px; font-size: .85rem; font-weight: 600; margin-bottom: 1rem;">
+                    Registration successful! Please log in.
+                </div>
+            <% } %>
 
             <form id="loginForm" action="<%= request.getContextPath() %>/login" method="post" novalidate>
 
@@ -426,7 +456,7 @@
 
                 <!-- Register Link -->
                 <p class="register-row" style="margin-top:1.1rem;">
-                    Don't have an account? <a href="Register.jsp">Register</a>
+                    Don't have an account? <a href="<%= request.getContextPath() %>/register">Register</a>
                 </p>
 
             </form><!-- /loginForm -->
