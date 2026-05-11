@@ -1,4 +1,4 @@
-package backend.model;
+package com.lifelink.model;
 
 public class User {
 

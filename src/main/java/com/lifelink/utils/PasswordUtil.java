@@ -1,4 +1,4 @@
-package backend.utils;
+package com.lifelink.utils;
 
 import org.mindrot.jbcrypt.BCrypt;
 

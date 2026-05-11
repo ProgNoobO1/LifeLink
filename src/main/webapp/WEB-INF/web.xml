@@ -9,7 +9,7 @@
   <!-- Servlets -->
   <servlet>
     <servlet-name>LoginServlet</servlet-name>
-    <servlet-class>backend.servlet.LoginServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.LoginServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>LoginServlet</servlet-name>
@@ -18,7 +18,7 @@
 
   <servlet>
     <servlet-name>RegisterServlet</servlet-name>
-    <servlet-class>backend.servlet.RegisterServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.RegisterServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>RegisterServlet</servlet-name>
@@ -27,7 +27,7 @@
 
   <servlet>
     <servlet-name>LogoutServlet</servlet-name>
-    <servlet-class>backend.servlet.LogoutServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.LogoutServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>LogoutServlet</servlet-name>
@@ -36,7 +36,7 @@
 
   <servlet>
     <servlet-name>AdminDashboardServlet</servlet-name>
-    <servlet-class>backend.servlet.AdminDashboardServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.AdminDashboardServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>AdminDashboardServlet</servlet-name>
@@ -45,7 +45,7 @@
 
   <servlet>
     <servlet-name>UserListServlet</servlet-name>
-    <servlet-class>backend.servlet.UserListServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.UserListServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>UserListServlet</servlet-name>
@@ -54,7 +54,7 @@
 
   <servlet>
     <servlet-name>AddUserServlet</servlet-name>
-    <servlet-class>backend.servlet.AddUserServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.AddUserServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>AddUserServlet</servlet-name>
@@ -63,7 +63,7 @@
 
   <servlet>
     <servlet-name>ViewUserServlet</servlet-name>
-    <servlet-class>backend.servlet.ViewUserServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.ViewUserServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>ViewUserServlet</servlet-name>
@@ -72,7 +72,7 @@
 
   <servlet>
     <servlet-name>EditUserServlet</servlet-name>
-    <servlet-class>backend.servlet.EditUserServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.EditUserServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>EditUserServlet</servlet-name>
@@ -81,7 +81,7 @@
 
   <servlet>
     <servlet-name>DeleteUserServlet</servlet-name>
-    <servlet-class>backend.servlet.DeleteUserServlet</servlet-class>
+    <servlet-class>com.lifelink.servlet.DeleteUserServlet</servlet-class>
   </servlet>
   <servlet-mapping>
     <servlet-name>DeleteUserServlet</servlet-name>
@@ -90,13 +90,13 @@
 
   <!-- Listeners -->
   <listener>
-    <listener-class>backend.listener.AppContextListener</listener-class>
+    <listener-class>com.lifelink.listener.AppContextListener</listener-class>
   </listener>
 
   <!-- Filters -->
   <filter>
     <filter-name>AdminFilter</filter-name>
-    <filter-class>backend.filter.AdminFilter</filter-class>
+    <filter-class>com.lifelink.filter.AdminFilter</filter-class>
   </filter>
   <filter-mapping>
     <filter-name>AdminFilter</filter-name>

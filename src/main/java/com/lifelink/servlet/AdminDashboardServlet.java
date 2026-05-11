@@ -1,7 +1,7 @@
-package backend.servlet;
+package com.lifelink.servlet;
 
-import backend.dao.UserDAO;
-import backend.model.User;
+import com.lifelink.dao.UserDAO;
+import com.lifelink.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 

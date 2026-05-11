@@ -1,8 +1,8 @@
-package backend.service;
+package com.lifelink.service;
 
-import backend.dao.UserDAO;
-import backend.model.User;
-import backend.utils.PasswordUtil;
+import com.lifelink.dao.UserDAO;
+import com.lifelink.model.User;
+import com.lifelink.utils.PasswordUtil;
 
 public class UserService {
 

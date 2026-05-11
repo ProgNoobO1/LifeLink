@@ -1,8 +1,8 @@
-package backend.servlet;
+package com.lifelink.servlet;
 
-import backend.model.User;
-import backend.service.AuthException;
-import backend.service.UserService;
+import com.lifelink.model.User;
+import com.lifelink.service.AuthException;
+import com.lifelink.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 

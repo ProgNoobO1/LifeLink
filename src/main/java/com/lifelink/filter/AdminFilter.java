@@ -1,6 +1,6 @@
-package backend.filter;
+package com.lifelink.filter;
 
-import backend.model.User;
+import com.lifelink.model.User;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 

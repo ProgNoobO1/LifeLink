@@ -1,9 +1,8 @@
-package backend.utils;
+package com.lifelink.utils;
 
-import backend.model.User;
-import backend.service.UserService;
-import backend.service.AuthException;
-import backend.utils.DBConnection;
+import com.lifelink.model.User;
+import com.lifelink.service.UserService;
+import com.lifelink.service.AuthException;
 
 /**
  * Development seeder — populates the database with test users.

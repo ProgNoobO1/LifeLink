@@ -1,4 +1,4 @@
-package backend.utils;
+package com.lifelink.utils;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

@@ -1,14 +1,13 @@
-package backend.servlet;
+package com.lifelink.servlet;
 
-import backend.dao.UserDAO;
-import backend.model.User;
+import com.lifelink.dao.UserDAO;
+import com.lifelink.model.User;
 import com.google.gson.Gson;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 

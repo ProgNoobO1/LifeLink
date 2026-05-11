@@ -1,4 +1,4 @@
-package backend.servlet;
+package com.lifelink.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;

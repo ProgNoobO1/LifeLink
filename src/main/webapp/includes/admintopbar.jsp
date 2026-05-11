@@ -5,7 +5,7 @@
   Time: 23:58
   To change this template use File | Settings | File Templates.
 --%>
-<%@ page import="backend.model.User" %>
+<%@ page import="com.lifelink.model.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     User currentAdmin = (User) session.getAttribute("currentUser");

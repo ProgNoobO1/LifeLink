@@ -1,6 +1,6 @@
-package backend.listener;
+package com.lifelink.listener;
 
-import backend.utils.DBConnection;
+import com.lifelink.utils.DBConnection;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 

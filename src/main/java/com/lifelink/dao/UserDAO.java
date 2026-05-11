@@ -1,7 +1,7 @@
-package backend.dao;
+package com.lifelink.dao;
 
-import backend.model.User;
-import backend.utils.DBConnection;
+import com.lifelink.model.User;
+import com.lifelink.utils.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
