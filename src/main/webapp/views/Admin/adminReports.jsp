@@ -1,6 +1,6 @@
 <%--
   Admin Reports – LifeLink
-  Created: 15/05/2026
+  Updated: 15/05/2026
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
@@ -86,6 +86,7 @@
             color: var(--text-mid);
             transition: all .2s;
             font-family: 'DM Sans', sans-serif;
+            text-decoration: none;
         }
 
         .dpill:hover { border-color: var(--red); color: var(--red); }
@@ -105,6 +106,7 @@
             color: var(--text-mid);
             cursor: pointer;
             transition: all .2s;
+            text-decoration: none;
         }
 
         .btn-icon:hover { border-color: var(--red); color: var(--red); }
@@ -349,6 +351,13 @@
         .medal-silver { fill: #9ca3af; }
         .medal-bronze { fill: #ea580c; }
 
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            font-size: .85rem;
+        }
+
         /* Animations */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(16px); }
@@ -377,23 +386,23 @@
         <div class="date-bar">
             <div class="date-picker">
                 <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
-                Jan 1, 2026 &nbsp;—&nbsp; Jan 31, 2026 &nbsp;<span style="color:var(--text-light);">▼</span>
+                ${fromDate} &nbsp;—&nbsp; ${toDate} &nbsp;<span style="color:var(--text-light);">▼</span>
             </div>
             <div class="date-pills">
-                <button class="dpill active">This Month</button>
-                <button class="dpill">Last 3 Months</button>
-                <button class="dpill">This Year</button>
+                <a href="${pageContext.request.contextPath}/admin/reports?period=month" class="dpill ${empty period || period eq 'month' ? 'active' : ''}">This Month</a>
+                <a href="${pageContext.request.contextPath}/admin/reports?period=3months" class="dpill ${period eq '3months' ? 'active' : ''}">Last 3 Months</a>
+                <a href="${pageContext.request.contextPath}/admin/reports?period=year" class="dpill ${period eq 'year' ? 'active' : ''}">This Year</a>
             </div>
             <div class="date-actions">
-                <button class="btn-icon">
+                <a href="${pageContext.request.contextPath}/admin/reports/export?type=pdf&fromDate=${fromDate}&toDate=${toDate}" class="btn-icon">
                     <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                     Export PDF
-                </button>
-                <button class="btn-icon">
+                </a>
+                <a href="${pageContext.request.contextPath}/admin/reports/export?type=csv&fromDate=${fromDate}&toDate=${toDate}" class="btn-icon">
                     <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                     Export Excel
-                </button>
-                <button class="btn-refresh">
+                </a>
+                <button class="btn-refresh" onclick="location.reload()">
                     <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0012 4a8 8 0 108 8h-2a6 6 0 11-6-6c1.66 0 3.14.69 4.22 1.76L13 11h7V4l-2.35 2.35z"/></svg>
                     Refresh
                 </button>
@@ -408,12 +417,12 @@
                 <div class="card-head">
                     <div>
                         <h3>Donation Trends</h3>
-                        <p>Monthly donations over the past year</p>
+                        <p>Monthly donations over the selected period</p>
                     </div>
                     <div style="display:flex; align-items:center; gap:.6rem;">
                         <span class="trend-up">
                             <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5M12 9v10"/></svg>
-                            +12.4%
+                            ${totalDonated} units
                         </span>
                         <button class="card-icon-btn">
                             <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/></svg>
@@ -421,57 +430,9 @@
                     </div>
                 </div>
                 <div class="chart-area">
-                    <div class="line-chart-wrapper">
+                    <div class="line-chart-wrapper" id="trendsChart">
                         <svg class="line-chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none">
-                            <!-- Grid lines -->
-                            <line x1="0" y1="180" x2="600" y2="180" stroke="#f3f4f6" stroke-width="1"/>
-                            <line x1="0" y1="120" x2="600" y2="120" stroke="#f3f4f6" stroke-width="1"/>
-                            <line x1="0" y1="60" x2="600" y2="60" stroke="#f3f4f6" stroke-width="1"/>
-                            <line x1="0" y1="0" x2="600" y2="0" stroke="#f3f4f6" stroke-width="1"/>
-
-                            <!-- Area fill -->
-                            <polygon points="0,170 40,155 80,165 120,135 160,125 200,130 240,115 280,120 320,105 360,95 400,100 440,80 480,85 520,70 560,65 600,75 600,220 0,220" fill="rgba(185,28,28,0.06)"/>
-
-                            <!-- Line -->
-                            <polyline points="0,170 40,155 80,165 120,135 160,125 200,130 240,115 280,120 320,105 360,95 400,100 440,80 480,85 520,70 560,65 600,75" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-
-                            <!-- Points -->
-                            <circle cx="0" cy="170" r="3" fill="#b91c1c"/>
-                            <circle cx="40" cy="155" r="3" fill="#b91c1c"/>
-                            <circle cx="80" cy="165" r="3" fill="#b91c1c"/>
-                            <circle cx="120" cy="135" r="3" fill="#b91c1c"/>
-                            <circle cx="160" cy="125" r="3" fill="#b91c1c"/>
-                            <circle cx="200" cy="130" r="3" fill="#b91c1c"/>
-                            <circle cx="240" cy="115" r="3" fill="#b91c1c"/>
-                            <circle cx="280" cy="120" r="3" fill="#b91c1c"/>
-                            <circle cx="320" cy="105" r="3" fill="#b91c1c"/>
-                            <circle cx="360" cy="95" r="3" fill="#b91c1c"/>
-                            <circle cx="400" cy="100" r="3" fill="#b91c1c"/>
-                            <circle cx="440" cy="80" r="3" fill="#b91c1c"/>
-                            <circle cx="480" cy="85" r="3" fill="#b91c1c"/>
-                            <circle cx="520" cy="70" r="3" fill="#b91c1c"/>
-                            <circle cx="560" cy="65" r="3" fill="#b91c1c"/>
-                            <circle cx="600" cy="75" r="3" fill="#b91c1c"/>
-
-                            <!-- Y-axis labels -->
-                            <text x="-5" y="183" font-size="10" fill="#9ca3af" text-anchor="end">0</text>
-                            <text x="-5" y="123" font-size="10" fill="#9ca3af" text-anchor="end">50</text>
-                            <text x="-5" y="63" font-size="10" fill="#9ca3af" text-anchor="end">100</text>
-                            <text x="-5" y="5" font-size="10" fill="#9ca3af" text-anchor="end">150</text>
-
-                            <!-- X-axis labels -->
-                            <text x="0" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Feb</text>
-                            <text x="55" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Mar</text>
-                            <text x="110" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Apr</text>
-                            <text x="165" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">May</text>
-                            <text x="220" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Jun</text>
-                            <text x="275" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Jul</text>
-                            <text x="330" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Aug</text>
-                            <text x="385" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Sep</text>
-                            <text x="440" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Oct</text>
-                            <text x="495" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Nov</text>
-                            <text x="550" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Dec</text>
-                            <text x="600" y="205" font-size="10" fill="#9ca3af" text-anchor="middle">Jan</text>
+                            <!-- Will be populated by JS -->
                         </svg>
                     </div>
                 </div>
@@ -488,43 +449,8 @@
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                     </button>
                 </div>
-                <div class="donut-wrap">
-                    <svg class="donut-chart" viewBox="0 0 200 200" style="transform: rotate(-90deg);">
-                        <!-- O+ 28% -->
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#dc2626" stroke-width="40"
-                                stroke-dasharray="140.74 361.26" stroke-dashoffset="0"/>
-                        <!-- A+ 22% -->
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#ef4444" stroke-width="40"
-                                stroke-dasharray="110.58 391.42" stroke-dashoffset="-140.74"/>
-                        <!-- B+ 17% -->
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#fca5a5" stroke-width="40"
-                                stroke-dasharray="85.45 416.55" stroke-dashoffset="-251.32"/>
-                        <!-- AB+ 9% -->
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#f59e0b" stroke-width="40"
-                                stroke-dasharray="45.24 456.76" stroke-dashoffset="-336.77"/>
-                        <!-- O- 10% -->
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#fbbf24" stroke-width="40"
-                                stroke-dasharray="50.27 451.73" stroke-dashoffset="-382.01"/>
-                        <!-- A- 7% -->
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#fde047" stroke-width="40"
-                                stroke-dasharray="35.19 466.81" stroke-dashoffset="-432.28"/>
-                        <!-- B- 5% -->
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#e879f9" stroke-width="40"
-                                stroke-dasharray="25.13 476.87" stroke-dashoffset="-467.47"/>
-                        <!-- AB- 2% -->
-                        <circle cx="100" cy="100" r="80" fill="none" stroke="#d1d5db" stroke-width="40"
-                                stroke-dasharray="10.05 491.95" stroke-dashoffset="-492.6"/>
-                    </svg>
-                    <div class="donut-legend">
-                        <div class="legend-item"><div class="legend-left"><span class="legend-dot" style="background:#dc2626;"></span><span class="legend-name">O+</span></div><span class="legend-pct">28%</span></div>
-                        <div class="legend-item"><div class="legend-left"><span class="legend-dot" style="background:#ef4444;"></span><span class="legend-name">A+</span></div><span class="legend-pct">22%</span></div>
-                        <div class="legend-item"><div class="legend-left"><span class="legend-dot" style="background:#fca5a5;"></span><span class="legend-name">B+</span></div><span class="legend-pct">17%</span></div>
-                        <div class="legend-item"><div class="legend-left"><span class="legend-dot" style="background:#f59e0b;"></span><span class="legend-name">AB+</span></div><span class="legend-pct">9%</span></div>
-                        <div class="legend-item"><div class="legend-left"><span class="legend-dot" style="background:#fbbf24;"></span><span class="legend-name">O-</span></div><span class="legend-pct">10%</span></div>
-                        <div class="legend-item"><div class="legend-left"><span class="legend-dot" style="background:#fde047;"></span><span class="legend-name">A-</span></div><span class="legend-pct">7%</span></div>
-                        <div class="legend-item"><div class="legend-left"><span class="legend-dot" style="background:#e879f9;"></span><span class="legend-name">B-</span></div><span class="legend-pct">5%</span></div>
-                        <div class="legend-item"><div class="legend-left"><span class="legend-dot" style="background:#d1d5db;"></span><span class="legend-name">AB-</span></div><span class="legend-pct">2%</span></div>
-                    </div>
+                <div class="donut-wrap" id="bgChart">
+                    <!-- Populated by JS -->
                 </div>
             </div><!-- /card -->
 
@@ -548,41 +474,41 @@
                     <div class="donut-progress">
                         <svg viewBox="0 0 140 140">
                             <circle cx="70" cy="70" r="58" fill="none" stroke="#f3f4f6" stroke-width="10"/>
-                            <circle cx="70" cy="70" r="58" fill="none" stroke="#b91c1c" stroke-width="10"
-                                    stroke-dasharray="274.89 89.03" stroke-linecap="round"
+                            <circle id="fulfillRing" cx="70" cy="70" r="58" fill="none" stroke="#b91c1c" stroke-width="10"
+                                    stroke-dasharray="0 363.8" stroke-linecap="round"
                                     stroke-dashoffset="0"/>
                         </svg>
                         <div class="donut-progress-text">
-                            <div class="pct">85%</div>
+                            <div class="pct" id="fulfillPct">0%</div>
                             <div class="lbl">Fulfilled</div>
                         </div>
                     </div>
                     <div class="fulfill-bars">
                         <div class="fbar">
-                            <div class="fbar-head"><span class="fbar-name">Fulfilled</span><span class="fbar-val">382</span></div>
-                            <div class="fbar-track"><div class="fbar-fill green" style="width:85%;"></div></div>
+                            <div class="fbar-head"><span class="fbar-name">Fulfilled</span><span class="fbar-val" id="fbarF">0</span></div>
+                            <div class="fbar-track"><div class="fbar-fill green" id="fbarFW" style="width:0%;"></div></div>
                         </div>
                         <div class="fbar">
-                            <div class="fbar-head"><span class="fbar-name">Pending</span><span class="fbar-val">45</span></div>
-                            <div class="fbar-track"><div class="fbar-fill amber" style="width:10%;"></div></div>
+                            <div class="fbar-head"><span class="fbar-name">Pending</span><span class="fbar-val" id="fbarP">0</span></div>
+                            <div class="fbar-track"><div class="fbar-fill amber" id="fbarPW" style="width:0%;"></div></div>
                         </div>
                         <div class="fbar">
-                            <div class="fbar-head"><span class="fbar-name">Rejected</span><span class="fbar-val">23</span></div>
-                            <div class="fbar-track"><div class="fbar-fill red" style="width:5%;"></div></div>
+                            <div class="fbar-head"><span class="fbar-name">Rejected</span><span class="fbar-val" id="fbarR">0</span></div>
+                            <div class="fbar-track"><div class="fbar-fill red" id="fbarRW" style="width:0%;"></div></div>
                         </div>
                     </div>
                 </div>
                 <div class="fulfill-summary">
                     <div class="fsum-card green">
-                        <div class="fsum-num">382</div>
+                        <div class="fsum-num" id="fsumF">0</div>
                         <div class="fsum-label">Fulfilled</div>
                     </div>
                     <div class="fsum-card amber">
-                        <div class="fsum-num">45</div>
+                        <div class="fsum-num" id="fsumP">0</div>
                         <div class="fsum-label">Pending</div>
                     </div>
                     <div class="fsum-card red">
-                        <div class="fsum-num">23</div>
+                        <div class="fsum-num" id="fsumR">0</div>
                         <div class="fsum-label">Rejected</div>
                     </div>
                 </div>
@@ -596,78 +522,13 @@
                         <p>Most active donors this period</p>
                     </div>
                     <div style="display:flex;align-items:center;gap:.5rem;">
-                        <a href="#" style="font-size:.78rem;font-weight:600;color:var(--text-mid);text-decoration:none;">View All</a>
                         <div style="width:28px;height:28px;border-radius:8px;background:var(--red-light);display:flex;align-items:center;justify-content:center;">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="#b91c1c"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.28 4.8 3.23 6.14.65.45 1.35.8 2.1 1.03V21h7.89v-4.83c.75-.23 1.45-.58 2.1-1.03C20.72 13.8 22 11.55 22 9V7c0-1.1-.9-2-2-2zM7 10.82C5.84 9.88 5.07 8.55 5 7h2v3.82zm0 0C7 10.82 7 10.82 7 10.82zM17 10.82V7h2c-.07 1.55-.84 2.88-2 3.82z"/></svg>
                         </div>
                     </div>
                 </div>
-                <div class="donors-list">
-                    <div class="donor-row gold">
-                        <div class="donor-rank gold">1</div>
-                        <div class="donor-avatar">DM</div>
-                        <div class="donor-info">
-                            <div class="donor-name">Daniel Mensah</div>
-                            <div class="donor-bg">Blood Group: O+</div>
-                        </div>
-                        <div class="donor-count">
-                            18
-                            <svg class="medal-gold" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.28 4.8 3.23 6.14.65.45 1.35.8 2.1 1.03V21h7.89v-4.83c.75-.23 1.45-.58 2.1-1.03C20.72 13.8 22 11.55 22 9V7c0-1.1-.9-2-2-2z"/></svg>
-                        </div>
-                        <div style="font-size:.7rem;color:var(--text-light);">donations</div>
-                    </div>
-                    <div class="donor-row">
-                        <div class="donor-rank silver">2</div>
-                        <div class="donor-avatar">SJ</div>
-                        <div class="donor-info">
-                            <div class="donor-name">Sarah Johnson</div>
-                            <div class="donor-bg">Blood Group: A+</div>
-                        </div>
-                        <div class="donor-count">
-                            14
-                            <svg class="medal-silver" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.28 4.8 3.23 6.14.65.45 1.35.8 2.1 1.03V21h7.89v-4.83c.75-.23 1.45-.58 2.1-1.03C20.72 13.8 22 11.55 22 9V7c0-1.1-.9-2-2-2z"/></svg>
-                        </div>
-                        <div style="font-size:.7rem;color:var(--text-light);">donations</div>
-                    </div>
-                    <div class="donor-row">
-                        <div class="donor-rank bronze">3</div>
-                        <div class="donor-avatar">KO</div>
-                        <div class="donor-info">
-                            <div class="donor-name">Kevin Osei</div>
-                            <div class="donor-bg">Blood Group: B+</div>
-                        </div>
-                        <div class="donor-count">
-                            12
-                            <svg class="medal-bronze" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.28 4.8 3.23 6.14.65.45 1.35.8 2.1 1.03V21h7.89v-4.83c.75-.23 1.45-.58 2.1-1.03C20.72 13.8 22 11.55 22 9V7c0-1.1-.9-2-2-2z"/></svg>
-                        </div>
-                        <div style="font-size:.7rem;color:var(--text-light);">donations</div>
-                    </div>
-                    <div class="donor-row">
-                        <div class="donor-rank plain">4</div>
-                        <div class="donor-avatar">PN</div>
-                        <div class="donor-info">
-                            <div class="donor-name">Priya Nair</div>
-                            <div class="donor-bg">Blood Group: O-</div>
-                        </div>
-                        <div class="donor-count">
-                            10
-                            <svg class="medal-silver" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        </div>
-                        <div style="font-size:.7rem;color:var(--text-light);">donations</div>
-                    </div>
-                    <div class="donor-row">
-                        <div class="donor-rank plain">5</div>
-                        <div class="donor-avatar">MC</div>
-                        <div class="donor-info">
-                            <div class="donor-name">Michael Chen</div>
-                            <div class="donor-bg">Blood Group: AB+</div>
-                        </div>
-                        <div class="donor-count">
-                            8
-                            <svg class="medal-silver" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                        </div>
-                        <div style="font-size:.7rem;color:var(--text-light);">donations</div>
-                    </div>
+                <div class="donors-list" id="topDonorsList">
+                    <!-- Populated by JS -->
                 </div>
             </div><!-- /card -->
 
@@ -675,6 +536,167 @@
 
     </div><!-- /content -->
 </div><!-- /main -->
+
+<script>
+// --- Donation Trends Line Chart ---
+const monthlyData = ${monthlyDonationsJson};
+(function drawTrends() {
+    const svg = document.querySelector('#trendsChart svg');
+    if (!monthlyData || monthlyData.length === 0) {
+        svg.innerHTML = '<text x="300" y="110" text-anchor="middle" fill="#9ca3af" font-size="14">No donation data for this period</text>';
+        return;
+    }
+
+    const vbW = 600, vbH = 220;
+    const padL = 40, padR = 10, padT = 10, padB = 30;
+    const chartW = vbW - padL - padR;
+    const chartH = vbH - padT - padB;
+
+    const maxVal = Math.max(...monthlyData.map(d => d.units || d.count || 0), 1);
+    const niceMax = Math.ceil(maxVal / 10) * 10 || 10;
+
+    let gridLines = '', yLabels = '';
+    const steps = 4;
+    for (let i = 0; i <= steps; i++) {
+        const y = padT + (chartH * i / steps);
+        const val = Math.round(niceMax * (steps - i) / steps);
+        gridLines += '<line x1="' + padL + '" y1="' + y + '" x2="' + (vbW - padR) + '" y2="' + y + '" stroke="#f3f4f6" stroke-width="1"/>';
+        yLabels += '<text x="' + (padL - 6) + '" y="' + (y + 4) + '" font-size="10" fill="#9ca3af" text-anchor="end">' + val + '</text>';
+    }
+
+    let points = '';
+    let areaPath = 'M' + padL + ',' + (padT + chartH) + ' ';
+    let circles = '';
+    let xLabels = '';
+
+    monthlyData.forEach((d, i) => {
+        const x = padL + (chartW * i / Math.max(monthlyData.length - 1, 1));
+        const val = d.units || d.count || 0;
+        const y = padT + chartH - (val / niceMax * chartH);
+        points += x + ',' + y + ' ';
+        areaPath += 'L' + x + ',' + y + ' ';
+        circles += '<circle cx="' + x + '" cy="' + y + '" r="3" fill="#b91c1c"/>';
+
+        const label = d.month ? d.month.substring(5) : '';
+        xLabels += '<text x="' + x + '" y="' + (vbH - 8) + '" font-size="10" fill="#9ca3af" text-anchor="middle">' + label + '</text>';
+    });
+    areaPath += 'L' + (padL + chartW) + ',' + (padT + chartH) + ' Z';
+
+    // Strip M, L, Z for polygon points attribute
+    const polyPoints = areaPath.replace(/M|L|Z/g, '').trim().replace(/\s+/g, ' ');
+
+    svg.innerHTML = gridLines +
+        '<polygon points="' + polyPoints + '" fill="rgba(185,28,28,0.06)"/>' +
+        '<polyline points="' + points.trim() + '" fill="none" stroke="#b91c1c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+        circles + yLabels + xLabels;
+})();
+
+// --- Blood Group Distribution Donut Chart ---
+const bgData = ${bloodGroupDistJson};
+(function drawDonut() {
+    const container = document.getElementById('bgChart');
+    if (!bgData || bgData.length === 0) {
+        container.innerHTML = '<div class="empty-state">No blood group data available</div>';
+        return;
+    }
+
+    const total = bgData.reduce((s, d) => s + d.count, 0);
+    const colors = ['#dc2626','#ef4444','#fca5a5','#f59e0b','#fbbf24','#fde047','#e879f9','#d1d5db','#9ca3af','#6b7280'];
+    const circ = 2 * Math.PI * 80; // r=80
+
+    let circles = '';
+    let legend = '';
+    let offset = 0;
+
+    bgData.forEach((d, i) => {
+        const pct = d.count / total;
+        const dash = pct * circ;
+        const gap = circ - dash;
+        circles += '<circle cx="100" cy="100" r="80" fill="none" stroke="' + colors[i % colors.length] + '" stroke-width="40"' +
+                    ' stroke-dasharray="' + dash.toFixed(2) + ' ' + gap.toFixed(2) + '" stroke-dashoffset="' + (-offset).toFixed(2) + '"/>';
+        offset += dash;
+
+        legend += '<div class="legend-item">' +
+                '<div class="legend-left"><span class="legend-dot" style="background:' + colors[i % colors.length] + ';"></span><span class="legend-name">' + d.bloodGroup + '</span></div>' +
+                '<span class="legend-pct">' + (pct * 100).toFixed(1) + '%</span>' +
+            '</div>';
+    });
+
+    container.innerHTML = '<svg class="donut-chart" viewBox="0 0 200 200" style="transform: rotate(-90deg);">' + circles + '</svg>' +
+        '<div class="donut-legend">' + legend + '</div>';
+})();
+
+// --- Request Fulfillment Rate ---
+const fulfillData = ${fulfillmentStatsJson};
+(function drawFulfillment() {
+    const f = fulfillData.FULFILLED || 0;
+    const p = fulfillData.PENDING || 0;
+    const r = fulfillData.REJECTED || 0;
+    const total = f + p + r;
+    const pct = total > 0 ? Math.round((f / total) * 100) : 0;
+
+    const circ = 2 * Math.PI * 58;
+    const dash = (pct / 100) * circ;
+    const gap = circ - dash;
+
+    document.getElementById('fulfillRing').setAttribute('stroke-dasharray', dash.toFixed(2) + ' ' + gap.toFixed(2));
+    document.getElementById('fulfillPct').textContent = pct + '%';
+
+    document.getElementById('fbarF').textContent = f;
+    document.getElementById('fbarP').textContent = p;
+    document.getElementById('fbarR').textContent = r;
+
+    document.getElementById('fbarFW').style.width = total > 0 ? ((f / total) * 100) + '%' : '0%';
+    document.getElementById('fbarPW').style.width = total > 0 ? ((p / total) * 100) + '%' : '0%';
+    document.getElementById('fbarRW').style.width = total > 0 ? ((r / total) * 100) + '%' : '0%';
+
+    document.getElementById('fsumF').textContent = f;
+    document.getElementById('fsumP').textContent = p;
+    document.getElementById('fsumR').textContent = r;
+})();
+
+// --- Top Donors ---
+const donorsData = ${topDonorsJson};
+(function drawDonors() {
+    const container = document.getElementById('topDonorsList');
+    if (!donorsData || donorsData.length === 0) {
+        container.innerHTML = '<div class="empty-state">No donors in this period</div>';
+        return;
+    }
+
+    const medals = [
+        { cls: 'medal-gold', fill: '#f59e0b' },
+        { cls: 'medal-silver', fill: '#9ca3af' },
+        { cls: 'medal-bronze', fill: '#ea580c' },
+        { cls: 'medal-silver', fill: '#9ca3af' },
+        { cls: 'medal-silver', fill: '#9ca3af' }
+    ];
+
+    const rankCls = ['gold','silver','bronze','plain','plain'];
+
+    let html = '';
+    donorsData.forEach((d, i) => {
+        const initials = d.name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+        const m = medals[i] || medals[3];
+        const rc = rankCls[i] || 'plain';
+        const goldCls = i === 0 ? ' gold' : '';
+        html += '<div class="donor-row' + goldCls + '">' +
+                '<div class="donor-rank ' + rc + '">' + (i + 1) + '</div>' +
+                '<div class="donor-avatar">' + initials + '</div>' +
+                '<div class="donor-info">' +
+                    '<div class="donor-name">' + d.name + '</div>' +
+                    '<div class="donor-bg">Blood Group: ' + (d.bloodGroup || 'N/A') + '</div>' +
+                '</div>' +
+                '<div class="donor-count">' +
+                    d.totalUnits +
+                    '<svg class="' + m.cls + '" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.28 4.8 3.23 6.14.65.45 1.35.8 2.1 1.03V21h7.89v-4.83c.75-.23 1.45-.58 2.1-1.03C20.72 13.8 22 11.55 22 9V7c0-1.1-.9-2-2-2z"/></svg>' +
+                '</div>' +
+                '<div style="font-size:.7rem;color:var(--text-light);">units</div>' +
+            '</div>';
+    });
+    container.innerHTML = html;
+})();
+</script>
 
 </body>
 </html>
