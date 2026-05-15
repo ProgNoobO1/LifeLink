@@ -5,7 +5,14 @@
   Time: 17:30
   To change this template use File | Settings | File Templates.
 --%>
+<%@ page import="com.lifelink.model.User" %>
+<%@ page import="com.lifelink.dao.UserDAO" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    UserDAO loginUserDAO = new UserDAO();
+    long loginTotalDonors = loginUserDAO.countByRole(User.Role.DONOR);
+    long loginTotalHospitals = loginUserDAO.countByRole(User.Role.HOSPITAL);
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -322,6 +329,70 @@
 
         .register-row a:hover { opacity: .75; }
 
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 200;
+            min-width: 300px;
+            max-width: 420px;
+            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: .75rem;
+            font-size: .9rem;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,.15);
+            transform: translateX(120%);
+            transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        .toast.error {
+            background: #fef2f2;
+            border: 1.5px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .toast.success {
+            background: #f0fdf4;
+            border: 1.5px solid #bbf7d0;
+            color: #166534;
+        }
+
+        .toast-icon {
+            width: 22px; height: 22px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .toast.error .toast-icon { fill: #dc2626; }
+        .toast.success .toast-icon { fill: #16a34a; }
+
+        .toast-body { flex: 1; line-height: 1.5; }
+
+        .toast-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: inherit;
+            opacity: .5;
+            transition: opacity .2s;
+            display: flex;
+        }
+        .toast-close:hover { opacity: 1; }
+        .toast-close svg { width: 16px; height: 16px; }
+
     </style>
 </head>
 <body>
@@ -356,7 +427,7 @@
                         <!-- People/donors icon -->
                         <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                     </div>
-                    <span class="stat-num">10k+</span>
+                    <span class="stat-num"><%= loginTotalDonors %></span>
                     <span class="stat-label">Active Donors</span>
                 </div>
 
@@ -365,7 +436,7 @@
                         <!-- Hospital icon -->
                         <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
                     </div>
-                    <span class="stat-num">50+</span>
+                    <span class="stat-num"><%= loginTotalHospitals %></span>
                     <span class="stat-label">Partner Hospitals</span>
                 </div>
             </div>
@@ -383,19 +454,16 @@
                 <p>Please enter your details to sign in.</p>
             </div>
 
-            <!-- ═══════════ STEP 7 & 8: Form ═══════════
-                 In Java (JSP), action="/LoginServlet" method="post"
-                 In pure HTML demo, we prevent default and show alert -->
-            <% if (request.getAttribute("error") != null) { %>
-                <div style="background: #fee2e2; color: #991b1b; padding: .75rem 1rem; border-radius: 10px; font-size: .85rem; font-weight: 600; margin-bottom: 1rem;">
-                    <%= request.getAttribute("error") %>
-                </div>
-            <% } %>
-            <% if ("true".equals(request.getParameter("registered"))) { %>
-                <div style="background: #d1fae5; color: #065f46; padding: .75rem 1rem; border-radius: 10px; font-size: .85rem; font-weight: 600; margin-bottom: 1rem;">
-                    Registration successful! Please log in.
-                </div>
-            <% } %>
+            <!-- ═══════════ STEP 7 & 8: Form ═══════════ -->
+
+            <!-- Toast Notification -->
+            <div id="toast" class="toast">
+                <svg class="toast-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-2h2v2h-2zm0-10v6h2V7h-2z"/></svg>
+                <span class="toast-body" id="toastBody"></span>
+                <button type="button" class="toast-close" onclick="hideToast()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
 
             <form id="loginForm" action="<%= request.getContextPath() %>/login" method="post" novalidate>
 
@@ -492,6 +560,22 @@
         eyeIcon.innerHTML = isHidden ? eyeOpen : eyeClosed;
     });
 
+    // --- Toast notification ---
+    const toast = document.getElementById('toast');
+    const toastBody = document.getElementById('toastBody');
+    let toastTimer;
+
+    function showToast(message, type) {
+        toastBody.textContent = message;
+        toast.className = 'toast ' + type + ' show';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(hideToast, 4500);
+    }
+
+    function hideToast() {
+        toast.classList.remove('show');
+    }
+
     // --- Form submit handler (client-side validation) ---
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         const email    = document.getElementById('email').value.trim();
@@ -499,12 +583,22 @@
 
         if (!email || !password) {
             e.preventDefault();
-            alert('Please fill in both email and password.');
+            showToast('Please fill in both email and password.', 'error');
             return;
         }
 
         // Form will POST normally to LoginServlet
     });
+
+    <% if (request.getAttribute("error") != null) { %>
+        showToast('<%= request.getAttribute("error").toString().replace("'", "\\'") %>', 'error');
+    <% } %>
+    <% if (request.getParameter("error") != null) { %>
+        showToast('<%= request.getParameter("error").replace("'", "\\'") %>', 'error');
+    <% } %>
+    <% if ("true".equals(request.getParameter("registered"))) { %>
+        showToast('Registration successful! Please log in.', 'success');
+    <% } %>
 </script>
 
 </body>

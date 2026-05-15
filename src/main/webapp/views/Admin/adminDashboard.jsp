@@ -566,11 +566,11 @@
                             Add User
                             <svg class="qa-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </a>
-                        <button class="qa-btn qa-dark">
+                        <a href="${pageContext.request.contextPath}/admin/reports" class="qa-btn qa-dark" style="text-decoration:none;">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                             Generate Report
                             <svg class="qa-arrow" viewBox="0 0 24 24" style="stroke:white;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                        </button>
+                        </a>
                         <a href="${pageContext.request.contextPath}/admin/users" class="qa-btn qa-light" style="text-decoration:none;">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                             Manage Users
@@ -618,7 +618,7 @@
                     <h3>Recent Activity</h3>
                     <p>Latest system events</p>
                 </div>
-                <button class="btn-red-outline">See All</button>
+                <a href="${pageContext.request.contextPath}/admin/users" class="btn-red-outline" style="text-decoration:none;">See All</a>
             </div>
 
             <div style="padding: 1.1rem 1.5rem;">
