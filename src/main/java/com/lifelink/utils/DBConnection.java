@@ -9,7 +9,7 @@ import java.sql.SQLException;
 public class DBConnection {
     private static final HikariDataSource dataSource;
 
-    private static final String DB_URL = "jdbc:mysql://localhost:3306/blood_management_db?useSSL=false&serverTimezone=UTC";
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/lifelink_database?useSSL=false&serverTimezone=UTC";
     private static final String DB_USER = "root";
     private static final String DB_PASSWORD = "your_new_password";
 

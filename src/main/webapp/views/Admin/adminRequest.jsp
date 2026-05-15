@@ -4,6 +4,7 @@
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -136,6 +137,8 @@
             color: var(--text-mid);
             transition: all .2s;
             font-family: 'DM Sans', sans-serif;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .pill:hover { background: #f3f4f6; }
@@ -329,6 +332,7 @@
             font-family: 'DM Sans', sans-serif;
             transition: all .2s;
             text-decoration: none;
+            background: none;
         }
 
         .action-btn.approve-btn {
@@ -358,6 +362,17 @@
         }
 
         .action-btn svg { width: 12px; height: 12px; fill: currentColor; }
+
+        /* Alert messages */
+        .alert {
+            padding: .9rem 1.2rem;
+            border-radius: 10px;
+            font-size: .85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .alert-success { background: #d1fae5; color: #065f46; border: 1.5px solid #a7f3d0; }
+        .alert-error   { background: var(--red-light); color: var(--red-dark); border: 1.5px solid #fecaca; }
 
         /* PAGINATION */
         .card-footer {
@@ -427,6 +442,13 @@
     <!-- CONTENT -->
     <div class="content">
 
+        <c:if test="${not empty param.success}">
+            <div class="alert alert-success">${param.success}</div>
+        </c:if>
+        <c:if test="${not empty param.error}">
+            <div class="alert alert-error">${param.error}</div>
+        </c:if>
+
         <!-- STAT CARDS -->
         <div class="stats-row">
             <div class="stat-card">
@@ -434,7 +456,7 @@
                     <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-num">128</div>
+                    <div class="stat-num">${totalRequests}</div>
                     <div class="stat-label">Total Requests</div>
                 </div>
             </div>
@@ -444,7 +466,7 @@
                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-num">45</div>
+                    <div class="stat-num">${pendingCount}</div>
                     <div class="stat-label">Pending</div>
                 </div>
             </div>
@@ -454,7 +476,7 @@
                     <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-num">67</div>
+                    <div class="stat-num">${approvedCount}</div>
                     <div class="stat-label">Approved</div>
                 </div>
             </div>
@@ -464,7 +486,7 @@
                     <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                 </div>
                 <div class="stat-info">
-                    <div class="stat-num">16</div>
+                    <div class="stat-num">${rejectedCount}</div>
                     <div class="stat-label">Rejected</div>
                 </div>
             </div>
@@ -482,10 +504,10 @@
             <div class="filter-group">
                 <span class="filter-label">Status</span>
                 <div class="filter-pills">
-                    <button class="pill active">All</button>
-                    <button class="pill pending-pill">Pending</button>
-                    <button class="pill approved-pill">Approved</button>
-                    <button class="pill rejected-pill">Rejected</button>
+                    <a href="${pageContext.request.contextPath}/admin/requests" class="pill ${activeFilter == 'all' ? 'active' : ''}">All</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?status=pending" class="pill pending-pill ${activeFilter == 'pending' ? 'active' : ''}">Pending</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?status=approved" class="pill approved-pill ${activeFilter == 'approved' ? 'active' : ''}">Approved</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?status=rejected" class="pill rejected-pill ${activeFilter == 'rejected' ? 'active' : ''}">Rejected</a>
                 </div>
             </div>
 
@@ -494,22 +516,22 @@
             <div class="filter-group">
                 <span class="filter-label">Blood Group</span>
                 <div class="filter-pills">
-                    <button class="pill active">All</button>
-                    <button class="pill">A+</button>
-                    <button class="pill">A-</button>
-                    <button class="pill">B+</button>
-                    <button class="pill">B-</button>
-                    <button class="pill">O+</button>
-                    <button class="pill">O-</button>
-                    <button class="pill">AB+</button>
-                    <button class="pill">AB-</button>
+                    <a href="${pageContext.request.contextPath}/admin/requests" class="pill ${activeBloodGroup == 'all' ? 'active' : ''}">All</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?bg=A%2B" class="pill ${activeBloodGroup == 'A+' ? 'active' : ''}">A+</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?bg=A-" class="pill ${activeBloodGroup == 'A-' ? 'active' : ''}">A-</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?bg=B%2B" class="pill ${activeBloodGroup == 'B+' ? 'active' : ''}">B+</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?bg=B-" class="pill ${activeBloodGroup == 'B-' ? 'active' : ''}">B-</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?bg=O%2B" class="pill ${activeBloodGroup == 'O+' ? 'active' : ''}">O+</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?bg=O-" class="pill ${activeBloodGroup == 'O-' ? 'active' : ''}">O-</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?bg=AB%2B" class="pill ${activeBloodGroup == 'AB+' ? 'active' : ''}">AB+</a>
+                    <a href="${pageContext.request.contextPath}/admin/requests?bg=AB-" class="pill ${activeBloodGroup == 'AB-' ? 'active' : ''}">AB-</a>
                 </div>
             </div>
 
-            <button class="btn-export">
+            <a href="${pageContext.request.contextPath}/admin/requests/export" class="btn-export" style="text-decoration:none;">
                 <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                 Export CSV
-            </button>
+            </a>
         </div><!-- /filters-row -->
 
         <!-- REQUESTS TABLE -->
@@ -517,11 +539,19 @@
             <div class="card-head">
                 <div>
                     <h3>All Requests</h3>
-                    <p>Showing 128 total requests</p>
+                    <p>Showing ${totalRequests} total requests</p>
                 </div>
                 <div class="sort-dropdown">
                     <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-                    Sort by: <strong style="color:var(--text-dark); margin-left:.2rem;">Newest First</strong>
+                    <span style="margin-right:.3rem;">Sort by:</span>
+                    <c:choose>
+                        <c:when test="${activeSort == 'oldest'}">
+                            <a href="${pageContext.request.contextPath}/admin/requests?sort=newest" style="color:var(--text-dark); font-weight:700; text-decoration:none;">Oldest First</a>
+                        </c:when>
+                        <c:otherwise>
+                            <a href="${pageContext.request.contextPath}/admin/requests?sort=oldest" style="color:var(--text-dark); font-weight:700; text-decoration:none;">Newest First</a>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
 
@@ -538,247 +568,126 @@
                 </tr>
                 </thead>
                 <tbody>
+                <c:forEach items="${requests}" var="req">
                 <tr>
-                    <td><span class="req-id">#REQ-001</span></td>
+                    <td><span class="req-id">${req.formattedRequestId}</span></td>
                     <td>
                         <div class="requester">
-                            <div class="requester-avatar">SJ</div>
+                            <div class="requester-avatar">${req.initials}</div>
                             <div class="requester-info">
-                                <span class="requester-name">Sarah Johnson</span>
-                                <span class="requester-email">sarah@email.com</span>
+                                <span class="requester-name">${req.requesterName}</span>
+                                <span class="requester-email">${req.requesterEmail}</span>
                             </div>
                         </div>
                     </td>
-                    <td><span class="blood-badge bg-red">A+</span></td>
-                    <td>2 units</td>
-                    <td>Jan 15, 2026</td>
-                    <td><span class="status-pill pending">Pending</span></td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${req.bloodGroup == 'A+'}"><span class="blood-badge bg-red">A+</span></c:when>
+                            <c:when test="${req.bloodGroup == 'A-'}"><span class="blood-badge bg-blue">A-</span></c:when>
+                            <c:when test="${req.bloodGroup == 'B+'}"><span class="blood-badge bg-purple">B+</span></c:when>
+                            <c:when test="${req.bloodGroup == 'B-'}"><span class="blood-badge bg-orange">B-</span></c:when>
+                            <c:when test="${req.bloodGroup == 'O+'}"><span class="blood-badge bg-green">O+</span></c:when>
+                            <c:when test="${req.bloodGroup == 'O-'}"><span class="blood-badge bg-blue">O-</span></c:when>
+                            <c:when test="${req.bloodGroup == 'AB+'}"><span class="blood-badge bg-red">AB+</span></c:when>
+                            <c:when test="${req.bloodGroup == 'AB-'}"><span class="blood-badge bg-teal">AB-</span></c:when>
+                            <c:otherwise><span class="blood-badge bg-red">${req.bloodGroup}</span></c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td>${req.units} unit${req.units > 1 ? 's' : ''}</td>
+                    <td>${req.formattedDate}</td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${req.status == 'PENDING'}">
+                                <span class="status-pill pending">Pending</span>
+                            </c:when>
+                            <c:when test="${req.status == 'APPROVED'}">
+                                <span class="status-pill approved">Approved</span>
+                            </c:when>
+                            <c:when test="${req.status == 'REJECTED'}">
+                                <span class="status-pill rejected">Rejected</span>
+                            </c:when>
+                        </c:choose>
+                    </td>
                     <td>
                         <div class="actions">
-                            <button class="action-btn approve-btn">
-                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                Approve
-                            </button>
-                            <button class="action-btn reject-btn">
-                                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                                Reject
-                            </button>
-                            <button class="action-btn view-btn">
+                            <c:choose>
+                                <c:when test="${req.status == 'PENDING'}">
+                                    <form method="post" action="${pageContext.request.contextPath}/admin/requests/action" style="display:inline;">
+                                        <input type="hidden" name="id" value="${req.id}"/>
+                                        <input type="hidden" name="action" value="approve"/>
+                                        <button type="submit" class="action-btn approve-btn">
+                                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <form method="post" action="${pageContext.request.contextPath}/admin/requests/action" style="display:inline;">
+                                        <input type="hidden" name="id" value="${req.id}"/>
+                                        <input type="hidden" name="action" value="reject"/>
+                                        <button type="submit" class="action-btn reject-btn">
+                                            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                            Reject
+                                        </button>
+                                    </form>
+                                </c:when>
+                                <c:otherwise>
+                                    <button class="action-btn approve-btn disabled" disabled>
+                                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                        Approve
+                                    </button>
+                                    <button class="action-btn reject-btn disabled" disabled>
+                                        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                        Reject
+                                    </button>
+                                </c:otherwise>
+                            </c:choose>
+                            <a href="${pageContext.request.contextPath}/admin/requests/action?id=${req.id}" class="action-btn view-btn">
                                 <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                                 View
-                            </button>
+                            </a>
                         </div>
                     </td>
                 </tr>
+                </c:forEach>
+                <c:if test="${empty requests}">
                 <tr>
-                    <td><span class="req-id">#REQ-002</span></td>
-                    <td>
-                        <div class="requester">
-                            <div class="requester-avatar">MC</div>
-                            <div class="requester-info">
-                                <span class="requester-name">Michael Chen</span>
-                                <span class="requester-email">mchen@email.com</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="blood-badge bg-blue">O-</span></td>
-                    <td>3 units</td>
-                    <td>Jan 14, 2026</td>
-                    <td><span class="status-pill approved">Approved</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="action-btn approve-btn disabled" disabled>
-                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                Approve
-                            </button>
-                            <button class="action-btn reject-btn disabled" disabled>
-                                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                                Reject
-                            </button>
-                            <button class="action-btn view-btn">
-                                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                View
-                            </button>
-                        </div>
-                    </td>
+                    <td colspan="7" style="text-align:center; color:var(--text-light); padding:2rem;">No requests found</td>
                 </tr>
-                <tr>
-                    <td><span class="req-id">#REQ-003</span></td>
-                    <td>
-                        <div class="requester">
-                            <div class="requester-avatar">AP</div>
-                            <div class="requester-info">
-                                <span class="requester-name">Aisha Patel</span>
-                                <span class="requester-email">aisha@email.com</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="blood-badge bg-purple">B+</span></td>
-                    <td>1 unit</td>
-                    <td>Jan 13, 2026</td>
-                    <td><span class="status-pill rejected">Rejected</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="action-btn approve-btn disabled" disabled>
-                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                Approve
-                            </button>
-                            <button class="action-btn reject-btn disabled" disabled>
-                                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                                Reject
-                            </button>
-                            <button class="action-btn view-btn">
-                                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                View
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><span class="req-id">#REQ-004</span></td>
-                    <td>
-                        <div class="requester">
-                            <div class="requester-avatar">JO</div>
-                            <div class="requester-info">
-                                <span class="requester-name">James Osei</span>
-                                <span class="requester-email">josei@email.com</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="blood-badge bg-red">AB+</span></td>
-                    <td>4 units</td>
-                    <td>Jan 12, 2026</td>
-                    <td><span class="status-pill pending">Pending</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="action-btn approve-btn">
-                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                Approve
-                            </button>
-                            <button class="action-btn reject-btn">
-                                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                                Reject
-                            </button>
-                            <button class="action-btn view-btn">
-                                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                View
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><span class="req-id">#REQ-005</span></td>
-                    <td>
-                        <div class="requester">
-                            <div class="requester-avatar">PN</div>
-                            <div class="requester-info">
-                                <span class="requester-name">Priya Nair</span>
-                                <span class="requester-email">priya@email.com</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="blood-badge bg-green">O+</span></td>
-                    <td>2 units</td>
-                    <td>Jan 11, 2026</td>
-                    <td><span class="status-pill approved">Approved</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="action-btn approve-btn disabled" disabled>
-                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                Approve
-                            </button>
-                            <button class="action-btn reject-btn disabled" disabled>
-                                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                                Reject
-                            </button>
-                            <button class="action-btn view-btn">
-                                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                View
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><span class="req-id">#REQ-006</span></td>
-                    <td>
-                        <div class="requester">
-                            <div class="requester-avatar">DK</div>
-                            <div class="requester-info">
-                                <span class="requester-name">David Kimura</span>
-                                <span class="requester-email">dkimura@email.com</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="blood-badge bg-blue">A-</span></td>
-                    <td>5 units</td>
-                    <td>Jan 10, 2026</td>
-                    <td><span class="status-pill pending">Pending</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="action-btn approve-btn">
-                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                Approve
-                            </button>
-                            <button class="action-btn reject-btn">
-                                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                                Reject
-                            </button>
-                            <button class="action-btn view-btn">
-                                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                View
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td><span class="req-id">#REQ-007</span></td>
-                    <td>
-                        <div class="requester">
-                            <div class="requester-avatar">FA</div>
-                            <div class="requester-info">
-                                <span class="requester-name">Fatima Al-Hassan</span>
-                                <span class="requester-email">fatima@email.com</span>
-                            </div>
-                        </div>
-                    </td>
-                    <td><span class="blood-badge bg-orange">B-</span></td>
-                    <td>2 units</td>
-                    <td>Jan 09, 2026</td>
-                    <td><span class="status-pill rejected">Rejected</span></td>
-                    <td>
-                        <div class="actions">
-                            <button class="action-btn approve-btn disabled" disabled>
-                                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                                Approve
-                            </button>
-                            <button class="action-btn reject-btn disabled" disabled>
-                                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                                Reject
-                            </button>
-                            <button class="action-btn view-btn">
-                                <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-                                View
-                            </button>
-                        </div>
-                    </td>
-                </tr>
+                </c:if>
                 </tbody>
             </table>
 
             <div class="card-footer">
-                <span class="showing-text">Showing 1–7 of 128 requests</span>
+                <span class="showing-text">Showing ${showingStart}–${showingEnd} of ${filteredTotal} requests</span>
                 <div class="pagination">
-                    <button class="page-btn" disabled>
-                        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-                    </button>
-                    <a href="#" class="page-btn active">1</a>
-                    <a href="#" class="page-btn">2</a>
-                    <a href="#" class="page-btn">3</a>
-                    <span class="page-dots">...</span>
-                    <a href="#" class="page-btn">19</a>
-                    <a href="#" class="page-btn">
-                        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-                    </a>
+                    <c:choose>
+                        <c:when test="${currentPage > 1}">
+                            <a href="${pageContext.request.contextPath}/admin/requests?page=${currentPage - 1}" class="page-btn">
+                                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                            <button class="page-btn" disabled>
+                                <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+                            </button>
+                        </c:otherwise>
+                    </c:choose>
+
+                    <c:forEach begin="1" end="${totalPages}" var="p">
+                        <a href="${pageContext.request.contextPath}/admin/requests?page=${p}" class="page-btn ${p == currentPage ? 'active' : ''}">${p}</a>
+                    </c:forEach>
+
+                    <c:choose>
+                        <c:when test="${currentPage < totalPages}">
+                            <a href="${pageContext.request.contextPath}/admin/requests?page=${currentPage + 1}" class="page-btn">
+                                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                            </a>
+                        </c:when>
+                        <c:otherwise>
+                            <button class="page-btn" disabled>
+                                <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                            </button>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
         </div><!-- /requests-card -->

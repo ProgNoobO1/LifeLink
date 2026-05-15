@@ -1,14 +1,14 @@
 -- ============================================================
 -- LifeLink Blood Management System - Database Seeder
--- Database: blood_management_db
+-- Database: lifelink_database
 -- MySQL 8.0
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS blood_management_db
+CREATE DATABASE IF NOT EXISTS lifelink_database
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE blood_management_db;
+USE lifelink_database;
 
 -- ------------------------------------------------------------
 -- Drop existing table (WARNING: deletes all data)

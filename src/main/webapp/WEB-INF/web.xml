@@ -53,6 +53,24 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>RequestActionServlet</servlet-name>
+    <servlet-class>com.lifelink.servlet.RequestActionServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RequestActionServlet</servlet-name>
+    <url-pattern>/admin/requests/action</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>RequestExportServlet</servlet-name>
+    <servlet-class>com.lifelink.servlet.RequestExportServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RequestExportServlet</servlet-name>
+    <url-pattern>/admin/requests/export</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>AdminReportsServlet</servlet-name>
     <servlet-class>com.lifelink.servlet.AdminReportsServlet</servlet-class>
   </servlet>

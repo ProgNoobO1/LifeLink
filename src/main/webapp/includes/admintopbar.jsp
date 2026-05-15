@@ -137,10 +137,10 @@
     <p><%= pageSubtitle %></p>
   </div>
 
-  <div class="topbar-search">
+  <form class="topbar-search" method="get" action="<%= request.getContextPath() %><%= (topUri != null && topUri.contains("/admin/requests")) ? "/admin/requests" : "/admin/dashboard" %>">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" placeholder="Search..."/>
-  </div>
+    <input type="text" name="search" placeholder="<%= (topUri != null && topUri.contains("/admin/requests")) ? "Search requests..." : "Search..." %>" value="<%= request.getParameter("search") != null ? request.getParameter("search") : "" %>"/>
+  </form>
 
   <div class="topbar-actions">
     <div class="notif-btn">

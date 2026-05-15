@@ -31,7 +31,7 @@ A web-based blood donation management platform built with **Java Servlets**, **H
 ### 1. Create the database
 
 ```sql
-CREATE DATABASE blood_management_db
+CREATE DATABASE lifelink_database
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 ```
@@ -54,7 +54,7 @@ Edit `src/main/resources/hibernate.cfg.xml`:
 
 ```xml
 <property name="hibernate.connection.url">
-    jdbc:mysql://localhost:3306/blood_management_db?useSSL=false&amp;serverTimezone=UTC
+    jdbc:mysql://localhost:3306/lifelink_database?useSSL=false&amp;serverTimezone=UTC
 </property>
 <property name="hibernate.connection.username">root</property>
 <property name="hibernate.connection.password">your_new_password</property>
@@ -185,7 +185,7 @@ mysql -u root -p < src/main/resources/db/seeder.sql
 ```
 
 What it does:
-1. Creates `blood_management_db` if it doesn't exist
+1. Creates `lifelink_database` if it doesn't exist
 2. Drops and recreates the `users` table
 3. Inserts 12 test users with BCrypt-hashed passwords
 
