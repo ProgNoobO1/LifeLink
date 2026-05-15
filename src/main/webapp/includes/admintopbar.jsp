@@ -126,7 +126,7 @@
           pageSubtitle = "View, add, edit, and manage system users.";
       } else if (topUri != null && topUri.contains("/admin/requests")) {
           pageTitle = "Manage Requests";
-          pageSubtitle = "Review and process blood requests.";
+          pageSubtitle = "Review, approve, or reject blood requests.";
       }
   %>
   <div class="topbar-title">
