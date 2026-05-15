@@ -127,6 +127,9 @@
       } else if (topUri != null && topUri.contains("/admin/requests")) {
           pageTitle = "Manage Requests";
           pageSubtitle = "Review, approve, or reject blood requests.";
+      } else if (topUri != null && topUri.contains("/admin/reports")) {
+          pageTitle = "System Reports";
+          pageSubtitle = "Analytics and insights for the LifeLink platform.";
       }
   %>
   <div class="topbar-title">

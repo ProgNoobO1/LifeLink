@@ -15,7 +15,7 @@ public class Seeder {
     public static void seed() {
         System.out.println("🌱 Seeding database...");
 
-        seedUser("System", "Admin", "admin@lifelink.org", "9800000000",
+        seedUser("System", "Admin", "admin1@lifelink.org", "9800000000",
                 null, "Admin@123", User.Role.ADMIN, User.Status.ACTIVE);
 
         seedUser("Sarah", "Johnson", "sarah.j@email.com", "9801111111",

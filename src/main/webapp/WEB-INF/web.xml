@@ -53,6 +53,15 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>AdminReportsServlet</servlet-name>
+    <servlet-class>com.lifelink.servlet.AdminReportsServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>AdminReportsServlet</servlet-name>
+    <url-pattern>/admin/reports</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>UserListServlet</servlet-name>
     <servlet-class>com.lifelink.servlet.UserListServlet</servlet-class>
   </servlet>
