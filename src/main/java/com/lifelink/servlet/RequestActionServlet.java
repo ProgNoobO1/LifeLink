@@ -2,7 +2,9 @@ package com.lifelink.servlet;
 
 import com.lifelink.dao.BloodRequestDAO;
 import com.lifelink.model.BloodRequest;
+import com.lifelink.model.Notification;
 import com.lifelink.model.User;
+import com.lifelink.service.NotificationService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 
@@ -80,6 +82,12 @@ public class RequestActionServlet extends HttpServlet {
             return;
         }
 
+        BloodRequest request = requestDAO.findById(requestId);
+        if (request == null) {
+            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Request not found");
+            return;
+        }
+
         boolean success = false;
         String message = "";
 
@@ -92,6 +100,18 @@ public class RequestActionServlet extends HttpServlet {
         } else {
             resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid action");
             return;
+        }
+
+        if (success) {
+            String notifType = "approve".equalsIgnoreCase(action) ? "REQUEST_APPROVED" : "REQUEST_REJECTED";
+            String notifTitle = "approve".equalsIgnoreCase(action) ? "Request approved" : "Request rejected";
+            Notification notification = new Notification(
+                notifType,
+                notifTitle,
+                request.getRequesterName() + "'s request for " + request.getBloodGroup() + " (" + request.getUnits() + " unit" + (request.getUnits() > 1 ? "s" : "") + ") was " + ("approve".equalsIgnoreCase(action) ? "approved" : "rejected"),
+                req.getContextPath() + "/admin/requests"
+            );
+            NotificationService.getInstance().broadcast(notification);
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/requests?" + (success ? "success=" : "error=") + java.net.URLEncoder.encode(message, "UTF-8"));

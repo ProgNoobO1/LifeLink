@@ -1,7 +1,9 @@
 package com.lifelink.servlet;
 
+import com.lifelink.model.Notification;
 import com.lifelink.model.User;
 import com.lifelink.service.AuthException;
+import com.lifelink.service.NotificationService;
 import com.lifelink.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
@@ -30,17 +32,8 @@ public class RegisterServlet extends HttpServlet {
         String password = req.getParameter("password");
         String confirmPassword = req.getParameter("confirmPassword");
 
-        // Split full name into first and last
-        String firstName = fullName != null ? fullName.trim() : "";
-        String lastName = "";
-        int spaceIdx = firstName.lastIndexOf(' ');
-        if (spaceIdx > 0) {
-            lastName = firstName.substring(spaceIdx + 1);
-            firstName = firstName.substring(0, spaceIdx);
-        }
-
         // Validation
-        if (firstName.isEmpty()) {
+        if (fullName == null || fullName.trim().isEmpty()) {
             redirectWithError(req, resp, "Full name is required.");
             return;
         }
@@ -63,7 +56,16 @@ public class RegisterServlet extends HttpServlet {
 
         try {
             User.Role role = User.Role.valueOf(roleStr.toUpperCase());
-            userService.registerUser(firstName, lastName, email.trim(), phone, bloodGroup, password, role, User.Status.ACTIVE);
+            userService.registerUser(fullName.trim(), email.trim(), phone, bloodGroup, password, role, User.Status.ACTIVE);
+
+            Notification notification = new Notification(
+                "NEW_USER",
+                "New user registered",
+                fullName.trim() + " (" + email.trim() + ") registered as " + role.name().toLowerCase(),
+                req.getContextPath() + "/admin/users"
+            );
+            NotificationService.getInstance().broadcast(notification);
+
             resp.sendRedirect(req.getContextPath() + "/login?registered=true");
         } catch (AuthException e) {
             redirectWithError(req, resp, e.getMessage());

@@ -47,8 +47,7 @@ public class ViewUserServlet extends HttpServlet {
 
             Map<String, Object> data = new HashMap<>();
             data.put("id", user.getId());
-            data.put("firstName", user.getFirstName());
-            data.put("lastName", user.getLastName());
+            data.put("fullName", user.getFullName());
             data.put("email", user.getEmail());
             data.put("phone", user.getPhone() != null ? user.getPhone() : "");
             data.put("bloodGroup", user.getBloodGroup() != null ? user.getBloodGroup() : "");

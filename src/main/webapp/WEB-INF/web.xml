@@ -133,6 +133,24 @@
     <url-pattern>/admin/users/delete</url-pattern>
   </servlet-mapping>
 
+  <servlet>
+    <servlet-name>NotificationServlet</servlet-name>
+    <servlet-class>com.lifelink.servlet.NotificationServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>NotificationServlet</servlet-name>
+    <url-pattern>/admin/notifications/stream</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>NotificationApiServlet</servlet-name>
+    <servlet-class>com.lifelink.servlet.NotificationApiServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>NotificationApiServlet</servlet-name>
+    <url-pattern>/admin/notifications/api</url-pattern>
+  </servlet-mapping>
+
   <!-- Listeners -->
   <listener>
     <listener-class>com.lifelink.listener.AppContextListener</listener-class>

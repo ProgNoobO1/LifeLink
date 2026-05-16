@@ -367,6 +367,23 @@
         .date-bar { animation: fadeUp .4s ease .05s both; }
         .charts-row { animation: fadeUp .4s ease .15s both; }
         .bottom-row { animation: fadeUp .4s ease .3s both; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .main { margin-left: 0; }
+            .content { padding: 1.25rem 1rem; }
+            .charts-row { grid-template-columns: 1fr; }
+            .bottom-row { grid-template-columns: 1fr; }
+            .date-actions { width: 100%; margin-left: 0; margin-top: .5rem; }
+            .date-bar { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 768px) {
+            .donut-wrap { flex-direction: column; align-items: center; }
+            .donut-chart { width: 140px; height: 140px; }
+            .fulfill-body { flex-direction: column; align-items: center; }
+            .fulfill-summary { grid-template-columns: 1fr; }
+            .card-head { flex-direction: column; align-items: flex-start; gap: .5rem; }
+        }
     </style>
 </head>
 <body>

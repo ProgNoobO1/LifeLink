@@ -459,6 +459,22 @@
 
     .stat-strip { animation: fadeUp .35s ease .05s both; }
     .card       { animation: fadeUp .35s ease .15s both; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .main { margin-left: 0; }
+      .content { padding: 1.25rem 1rem; }
+      .stat-strip { grid-template-columns: repeat(2, 1fr); }
+      .card-head { flex-wrap: wrap; gap: .75rem; }
+      .table-search { width: 100%; }
+      .table-search input { width: 100%; }
+    }
+    @media (max-width: 768px) {
+      .stat-strip { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+      .modal-content { margin: 1rem; max-height: 80vh; }
+      .password-row { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
@@ -587,10 +603,10 @@
                         <c:when test="${user.role == 'HOSPITAL'}">#ede9fe;color:#7c3aed;</c:when>
                         <c:otherwise>#fef3c7;color:#d97706;</c:otherwise>
                       </c:choose>">
-                      ${fn:substring(user.firstName, 0, 1)}${fn:substring(user.lastName, 0, 1)}
+                      ${user.initials}
                     </div>
                     <div class="user-cell-info">
-                      <div class="uname">${user.firstName} ${user.lastName}</div>
+                      <div class="uname">${user.fullName}</div>
                       <div class="uid">ID: #USR-${user.id}</div>
                     </div>
                   </div>
@@ -729,12 +745,8 @@
     </div>
     <form id="addUserForm" action="${pageContext.request.contextPath}/admin/users/add" method="post">
       <div class="form-group">
-        <label>First Name</label>
-        <input type="text" name="firstName" required maxlength="50" value="${firstName != null ? firstName : ''}"/>
-      </div>
-      <div class="form-group">
-        <label>Last Name</label>
-        <input type="text" name="lastName" required maxlength="50" value="${lastName != null ? lastName : ''}"/>
+        <label>Full Name</label>
+        <input type="text" name="fullName" required maxlength="150" value="${fullName != null ? fullName : ''}"/>
       </div>
       <div class="form-group">
         <label>Email</label>
@@ -835,12 +847,8 @@
     <form id="editUserForm" action="${pageContext.request.contextPath}/admin/users/edit" method="post">
       <input type="hidden" name="editId" />
       <div class="form-group">
-        <label>First Name</label>
-        <input type="text" name="editFirstName" required maxlength="50"/>
-      </div>
-      <div class="form-group">
-        <label>Last Name</label>
-        <input type="text" name="editLastName" required maxlength="50"/>
+        <label>Full Name</label>
+        <input type="text" name="editFullName" required maxlength="150"/>
       </div>
       <div class="form-group">
         <label>Email</label>
@@ -956,7 +964,7 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">Full Name</span>
-            <span class="detail-value">\${user.firstName} \${user.lastName}</span>
+            <span class="detail-value">\${user.fullName}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Email</span>
@@ -1004,8 +1012,7 @@
       })
       .then(user => {
         document.querySelector('#editUserForm [name="editId"]').value = user.id;
-        document.querySelector('#editUserForm [name="editFirstName"]').value = user.firstName;
-        document.querySelector('#editUserForm [name="editLastName"]').value = user.lastName;
+        document.querySelector('#editUserForm [name="editFullName"]').value = user.fullName;
         document.querySelector('#editUserForm [name="editEmail"]').value = user.email;
         document.querySelector('#editUserForm [name="editPhone"]').value = user.phone || '';
         document.querySelector('#editUserForm [name="editBloodGroup"]').value = user.bloodGroup || '';

@@ -10,20 +10,40 @@ import java.util.List;
 
 public class BloodRequestDAO {
 
+    private static BloodRequest.Status dbToStatus(String dbStatus) {
+        String s = dbStatus.toLowerCase();
+        if ("pending".equals(s)) return BloodRequest.Status.PENDING;
+        if ("accepted".equals(s) || "completed".equals(s)) return BloodRequest.Status.APPROVED;
+        if ("rejected".equals(s) || "cancelled".equals(s)) return BloodRequest.Status.REJECTED;
+        return BloodRequest.Status.PENDING;
+    }
+
+    private static String statusToDb(BloodRequest.Status status) {
+        if (status == BloodRequest.Status.PENDING) return "pending";
+        if (status == BloodRequest.Status.APPROVED) return "completed";
+        return "rejected";
+    }
+
     private BloodRequest mapResultSet(ResultSet rs) throws SQLException {
         BloodRequest req = new BloodRequest();
         req.setId(rs.getLong("id"));
         req.setRequesterName(rs.getString("requester_name"));
         req.setRequesterEmail(rs.getString("requester_email"));
         req.setBloodGroup(rs.getString("blood_group"));
-        req.setUnits(rs.getInt("units"));
-        req.setRequestDate(rs.getDate("request_date").toLocalDate());
-        req.setStatus(BloodRequest.Status.valueOf(rs.getString("status")));
+        req.setUnits(rs.getInt("units_needed"));
+        req.setRequestDate(rs.getTimestamp("requested_at").toLocalDateTime().toLocalDate());
+        req.setStatus(dbToStatus(rs.getString("status")));
         return req;
     }
 
+    private static final String BASE_SQL =
+        "SELECT br.*, u.full_name as requester_name, u.email as requester_email, bg.name as blood_group " +
+        "FROM blood_requests br " +
+        "JOIN users u ON br.requester_id = u.id " +
+        "JOIN blood_groups bg ON br.blood_group_id = bg.id ";
+
     public List<BloodRequest> findAll() {
-        String sql = "SELECT * FROM blood_requests ORDER BY request_date DESC, id DESC";
+        String sql = BASE_SQL + "ORDER BY br.requested_at DESC, br.id DESC";
         List<BloodRequest> list = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -39,7 +59,7 @@ public class BloodRequestDAO {
     }
 
     public BloodRequest findById(Long id) {
-        String sql = "SELECT * FROM blood_requests WHERE id = ?";
+        String sql = BASE_SQL + "WHERE br.id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setLong(1, id);
@@ -58,7 +78,7 @@ public class BloodRequestDAO {
         String sql = "UPDATE blood_requests SET status = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, status.name());
+            stmt.setString(1, statusToDb(status));
             stmt.setLong(2, id);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -80,11 +100,11 @@ public class BloodRequestDAO {
     }
 
     public List<BloodRequest> findByStatus(BloodRequest.Status status) {
-        String sql = "SELECT * FROM blood_requests WHERE status = ? ORDER BY request_date DESC, id DESC";
+        String sql = BASE_SQL + "WHERE br.status = ? ORDER BY br.requested_at DESC, br.id DESC";
         List<BloodRequest> list = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, status.name());
+            stmt.setString(1, statusToDb(status));
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     list.add(mapResultSet(rs));
@@ -98,7 +118,7 @@ public class BloodRequestDAO {
     }
 
     public List<BloodRequest> findByBloodGroup(String bloodGroup) {
-        String sql = "SELECT * FROM blood_requests WHERE blood_group = ? ORDER BY request_date DESC, id DESC";
+        String sql = BASE_SQL + "WHERE bg.name = ? ORDER BY br.requested_at DESC, br.id DESC";
         List<BloodRequest> list = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -116,7 +136,9 @@ public class BloodRequestDAO {
     }
 
     public List<BloodRequest> search(String keyword) {
-        String sql = "SELECT * FROM blood_requests WHERE requester_name LIKE ? OR requester_email LIKE ? OR blood_group LIKE ? ORDER BY request_date DESC, id DESC";
+        String sql = BASE_SQL +
+            "WHERE u.full_name LIKE ? OR u.email LIKE ? OR bg.name LIKE ? " +
+            "ORDER BY br.requested_at DESC, br.id DESC";
         List<BloodRequest> list = new ArrayList<>();
         String pattern = "%" + keyword + "%";
         try (Connection conn = DBConnection.getConnection();
@@ -141,7 +163,7 @@ public class BloodRequestDAO {
         if ("oldest".equalsIgnoreCase(sortOrder)) {
             order = "ASC";
         }
-        String sql = "SELECT * FROM blood_requests ORDER BY request_date " + order + ", id " + order;
+        String sql = BASE_SQL + "ORDER BY br.requested_at " + order + ", br.id " + order;
         List<BloodRequest> list = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -160,7 +182,7 @@ public class BloodRequestDAO {
         String sql = "SELECT COUNT(*) FROM blood_requests WHERE status = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, status.name());
+            stmt.setString(1, statusToDb(status));
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) return rs.getLong(1);
             }

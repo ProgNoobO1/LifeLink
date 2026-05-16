@@ -420,6 +420,24 @@
         .middle-row { animation: fadeUp .4s ease .3s both; }
         .activity-section { animation: fadeUp .4s ease .4s both; }
 
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .main { margin-left: 0; }
+            .content { padding: 1.25rem 1rem; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .middle-row { grid-template-columns: 1fr; }
+            .activity-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .activity-row { grid-template-columns: 1fr; }
+            .card-head { flex-direction: column; align-items: flex-start; gap: .75rem; }
+            .card-actions { width: 100%; flex-wrap: wrap; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            .quick-actions { padding: 1rem; }
+            .chart-area { padding: 0 1rem 1rem; }
+        }
+
     </style>
 </head>
 <body>
@@ -514,7 +532,7 @@
                     <c:forEach items="${recentUsers}" var="u">
                     <tr>
                         <td><span class="req-id">#USR-${u.id}</span></td>
-                        <td>${u.firstName} ${u.lastName}</td>
+                        <td>${u.fullName}</td>
                         <td>
                             <c:choose>
                                 <c:when test="${not empty u.bloodGroup}">

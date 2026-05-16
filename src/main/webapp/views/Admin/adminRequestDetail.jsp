@@ -181,6 +181,18 @@
             to   { opacity: 1; transform: translateY(0); }
         }
         .detail-card { animation: fadeUp .4s ease both; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .main { margin-left: 0; }
+            .content { padding: 1.25rem 1rem; }
+        }
+        @media (max-width: 768px) {
+            .detail-card { max-width: 100%; }
+            .detail-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .detail-body { grid-template-columns: 1fr; }
+            .detail-footer { flex-wrap: wrap; }
+        }
     </style>
 </head>
 <body>

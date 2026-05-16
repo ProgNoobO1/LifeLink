@@ -427,6 +427,22 @@
         .stats-row .stat-card:nth-child(4) { animation: fadeUp .4s ease .26s both; }
         .filters-row { animation: fadeUp .4s ease .3s both; }
         .requests-card { animation: fadeUp .4s ease .4s both; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .main { margin-left: 0; }
+            .content { padding: 1.25rem 1rem; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .filters-row { gap: 1rem; }
+            .btn-export { margin-left: 0; width: 100%; justify-content: center; }
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: 1fr; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            .card-head { flex-direction: column; align-items: flex-start; gap: .5rem; }
+            .actions { flex-wrap: nowrap; }
+            .card-footer { flex-direction: column; gap: 1rem; align-items: flex-start; }
+        }
     </style>
 </head>
 <body>

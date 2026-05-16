@@ -9,6 +9,11 @@
         justify-content: space-between;
         font-size: .78rem;
         color: #9ca3af;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+    @media (max-width: 768px) {
+        .site-footer { padding: 1rem; flex-direction: column; text-align: center; }
     }
     .site-footer .footer-links { display: flex; gap: 1.5rem; }
     .site-footer .footer-links a {

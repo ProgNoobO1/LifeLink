@@ -44,6 +44,33 @@
         transition: color .2s;
     }
     .site-navbar ul li a:hover { color: white; }
+
+    .nav-hamburger {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: white;
+        padding: .25rem;
+    }
+    .nav-hamburger svg { width: 24px; height: 24px; }
+
+    @media (max-width: 768px) {
+        .site-navbar { padding: 0 1rem; }
+        .site-navbar ul {
+            display: none;
+            position: absolute;
+            top: 64px;
+            left: 0; right: 0;
+            background: #1a1a1a;
+            flex-direction: column;
+            padding: 1rem 1.5rem;
+            gap: 1rem;
+            border-top: 1px solid rgba(255,255,255,.1);
+        }
+        .site-navbar ul.show { display: flex; }
+        .nav-hamburger { display: block; }
+    }
 </style>
 <nav class="site-navbar">
     <a href="${pageContext.request.contextPath}/index.jsp" class="nav-brand">
@@ -54,6 +81,9 @@
         </div>
         <span>LifeLink</span>
     </a>
+    <button type="button" class="nav-hamburger" onclick="document.querySelector('.site-navbar ul').classList.toggle('show')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
     <ul>
         <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
         <li><a href="#">About</a></li>

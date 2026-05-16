@@ -201,7 +201,22 @@
 
         .user-more svg { width: 16px; height: 16px; fill: currentColor; }
 
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); transition: transform .3s ease; }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,.45);
+                z-index: 99;
+            }
+            .sidebar-overlay.show { display: block; }
+        }
+
 </style>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <!-- ═════════════════ SIDEBAR ═════════════════ -->
 <aside class="sidebar">
 
@@ -266,3 +281,15 @@
     </div>
 
 </aside>
+
+<script>
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('open');
+    document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+    document.querySelector('.sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+}
+window.addEventListener('resize', () => { if(window.innerWidth > 1024) closeSidebar(); });
+</script>

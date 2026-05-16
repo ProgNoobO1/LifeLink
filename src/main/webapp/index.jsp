@@ -484,7 +484,7 @@
             <% } else { %>
                 <div class="user-pill">
                     <span class="dot"></span>
-                    <%= currentUser.getFirstName() %>
+                    <%= currentUser.getFullName() %>
                 </div>
                 <a href="<%= request.getContextPath() %>/logout" class="btn btn-outline">Log Out</a>
             <% } %>

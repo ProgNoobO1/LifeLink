@@ -66,6 +66,11 @@
             }
             .hero { order: 2; }
             .register-card { order: 1; }
+            .stats { grid-template-columns: 1fr 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .role-group { grid-template-columns: 1fr; }
+            main { padding: 2rem 1rem; }
+            .toast { min-width: auto; max-width: calc(100vw - 2rem); right: 1rem; left: 1rem; }
         }
 
         /* ── Left Hero ── */

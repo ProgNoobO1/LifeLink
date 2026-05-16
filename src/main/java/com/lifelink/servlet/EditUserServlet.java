@@ -30,8 +30,7 @@ public class EditUserServlet extends HttpServlet {
         }
 
         String idParam = req.getParameter("editId");
-        String firstName = req.getParameter("editFirstName");
-        String lastName = req.getParameter("editLastName");
+        String fullName = req.getParameter("editFullName");
         String email = req.getParameter("editEmail");
         String phone = req.getParameter("editPhone");
         String bloodGroup = req.getParameter("editBloodGroup");
@@ -44,7 +43,7 @@ public class EditUserServlet extends HttpServlet {
             User.Role role = User.Role.valueOf(roleStr);
             User.Status status = User.Status.valueOf(statusStr);
 
-            userService.updateUser(userId, firstName, lastName, email, phone,
+            userService.updateUser(userId, fullName, email, phone,
                     bloodGroup, password, role, status, admin);
 
             session.setAttribute("successMessage", "User updated successfully!");
