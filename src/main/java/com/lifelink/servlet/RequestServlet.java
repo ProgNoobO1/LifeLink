@@ -12,9 +12,11 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
-@WebServlet("/recipient/create-request")
+@WebServlet(urlPatterns = {"/recipient/create-request", "/recipient/requests"})
 public class RequestServlet extends HttpServlet {
 
     private static final int MAX_NAME_LENGTH = 150;
@@ -37,6 +39,11 @@ public class RequestServlet extends HttpServlet {
             return;
         }
 
+        if ("cancel".equals(req.getParameter("action"))) {
+            handleCancel(req, resp, session, currentUser);
+            return;
+        }
+
         String csrfFromSession = (String) session.getAttribute("csrfToken");
         String csrfFromRequest = req.getParameter("csrfToken");
         if (csrfFromSession == null || csrfFromRequest == null || !csrfFromSession.equals(csrfFromRequest)) {
@@ -54,7 +61,7 @@ public class RequestServlet extends HttpServlet {
             long requestId = requestDAO.createRequest(data);
             session.removeAttribute("csrfToken");
             session.setAttribute("requestSuccess", "Blood request #" + requestId + " submitted successfully.");
-            resp.sendRedirect(req.getContextPath() + "/recipient/dashboard");
+            resp.sendRedirect(req.getContextPath() + "/recipient/requests");
         } catch (IllegalArgumentException e) {
             forwardWithError(req, resp, e.getMessage());
         } catch (SQLException e) {
@@ -65,8 +72,32 @@ public class RequestServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+        HttpSession session = req.getSession(false);
+        User currentUser = getCurrentUser(session);
+        if (currentUser == null) {
+            resp.sendRedirect(req.getContextPath() + "/login");
+            return;
+        }
+        if (currentUser.getRole() != User.Role.RECIPIENT) {
+            resp.sendRedirect(req.getContextPath() + "/403");
+            return;
+        }
+
+        try {
+            Map<String, Integer> requestCounts = requestDAO.countRequestsByStatus(currentUser.getId());
+            List<RequestDAO.RequestListItem> requests = requestDAO.findRequestsByRecipient(currentUser.getId());
+            req.setAttribute("requestCounts", requestCounts);
+            req.setAttribute("requests", requests);
+            req.setAttribute("currentUser", currentUser);
+            req.getRequestDispatcher("/views/recipient/my_requests.jsp").forward(req, resp);
+        } catch (SQLException e) {
+            System.err.println("[RequestServlet] Error loading recipient requests: " + e.getMessage());
+            e.printStackTrace(System.err);
+            req.setAttribute("requestListError", "Unable to load your requests right now. Please try again shortly.");
+            req.getRequestDispatcher("/views/recipient/my_requests.jsp").forward(req, resp);
+        }
     }
 
     private User getCurrentUser(HttpSession session) {
@@ -149,6 +180,34 @@ public class RequestServlet extends HttpServlet {
 
     private String clean(String value) {
         return value == null ? "" : value.trim().replaceAll("\\s+", " ");
+    }
+
+    private void handleCancel(HttpServletRequest req, HttpServletResponse resp, HttpSession session, User currentUser)
+            throws IOException {
+        String csrfFromSession = (String) session.getAttribute("csrfToken");
+        String csrfFromRequest = req.getParameter("csrfToken");
+        if (csrfFromSession == null || csrfFromRequest == null || !csrfFromSession.equals(csrfFromRequest)) {
+            session.setAttribute("requestError", "Your session expired. Please try cancelling again.");
+            resp.sendRedirect(req.getContextPath() + "/recipient/requests");
+            return;
+        }
+
+        try {
+            long requestId = Long.parseLong(clean(req.getParameter("requestId")));
+            boolean cancelled = requestDAO.cancelPendingRequest(requestId, currentUser.getId());
+            if (cancelled) {
+                session.setAttribute("requestSuccess", "Request #REQ-" + String.format("%03d", requestId) + " was cancelled.");
+            } else {
+                session.setAttribute("requestError", "Only pending requests can be cancelled.");
+            }
+        } catch (NumberFormatException e) {
+            session.setAttribute("requestError", "Invalid request selected.");
+        } catch (SQLException e) {
+            System.err.println("[RequestServlet] Error cancelling request: " + e.getMessage());
+            e.printStackTrace(System.err);
+            session.setAttribute("requestError", "We could not cancel that request right now. Please try again shortly.");
+        }
+        resp.sendRedirect(req.getContextPath() + "/recipient/requests");
     }
 
     private void forwardWithError(HttpServletRequest req, HttpServletResponse resp, String message)
