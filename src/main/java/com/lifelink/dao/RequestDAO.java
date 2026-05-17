@@ -7,10 +7,62 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RequestDAO {
+
+    public static class RequestListItem {
+        private final long id;
+        private final String bloodGroup;
+        private final int unitsNeeded;
+        private final String urgency;
+        private final String status;
+        private final Timestamp requestedAt;
+
+        public RequestListItem(long id, String bloodGroup, int unitsNeeded, String urgency, String status, Timestamp requestedAt) {
+            this.id = id;
+            this.bloodGroup = bloodGroup;
+            this.unitsNeeded = unitsNeeded;
+            this.urgency = urgency;
+            this.status = status;
+            this.requestedAt = requestedAt;
+        }
+
+        public long getId() {
+            return id;
+        }
+
+        public String getBloodGroup() {
+            return bloodGroup;
+        }
+
+        public int getUnitsNeeded() {
+            return unitsNeeded;
+        }
+
+        public String getUrgency() {
+            return urgency;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public Timestamp getRequestedAt() {
+            return requestedAt;
+        }
+
+        public String getDisplayStatus() {
+            if ("accepted".equals(status) || "completed".equals(status)) {
+                return "fulfilled";
+            }
+            return status;
+        }
+    }
 
     public static class BloodGroupOption {
         private final int id;
@@ -66,6 +118,73 @@ public class RequestDAO {
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next();
             }
+        }
+    }
+
+    public Map<String, Integer> countRequestsByStatus(long requesterId) throws SQLException {
+        String sql = "SELECT status, COUNT(*) AS count FROM blood_requests WHERE requester_id = ? GROUP BY status";
+        Map<String, Integer> counts = new HashMap<>();
+        counts.put("total", 0);
+        counts.put("pending", 0);
+        counts.put("fulfilled", 0);
+        counts.put("cancelled", 0);
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, requesterId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    String status = rs.getString("status");
+                    int count = rs.getInt("count");
+                    counts.put("total", counts.get("total") + count);
+                    if ("pending".equals(status)) {
+                        counts.put("pending", count);
+                    } else if ("accepted".equals(status) || "completed".equals(status)) {
+                        counts.put("fulfilled", counts.get("fulfilled") + count);
+                    } else if ("cancelled".equals(status)) {
+                        counts.put("cancelled", count);
+                    }
+                }
+            }
+        }
+        return counts;
+    }
+
+    public List<RequestListItem> findRequestsByRecipient(long requesterId) throws SQLException {
+        String sql =
+            "SELECT br.id, bg.name AS blood_group, br.units_needed, br.urgency, br.status, br.requested_at " +
+            "FROM blood_requests br " +
+            "JOIN blood_groups bg ON bg.id = br.blood_group_id " +
+            "WHERE br.requester_id = ? " +
+            "ORDER BY br.requested_at DESC";
+        List<RequestListItem> requests = new ArrayList<>();
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, requesterId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    requests.add(new RequestListItem(
+                        rs.getLong("id"),
+                        rs.getString("blood_group"),
+                        rs.getInt("units_needed"),
+                        rs.getString("urgency"),
+                        rs.getString("status"),
+                        rs.getTimestamp("requested_at")
+                    ));
+                }
+            }
+        }
+        return requests;
+    }
+
+    public boolean cancelPendingRequest(long requestId, long requesterId) throws SQLException {
+        String sql = "UPDATE blood_requests SET status = 'cancelled' WHERE id = ? AND requester_id = ? AND status = 'pending'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, requestId);
+            stmt.setLong(2, requesterId);
+            return stmt.executeUpdate() > 0;
         }
     }
 

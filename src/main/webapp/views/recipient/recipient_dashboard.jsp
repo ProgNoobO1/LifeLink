@@ -242,7 +242,7 @@
                         <div class="card-title">Recent Requests</div>
                         <div class="card-subtitle">Your blood request history</div>
                     </div>
-                    <a href="${pageContext.request.contextPath}/views/recipient/create_request.jsp" class="view-all-btn">View All</a>
+                    <a href="${pageContext.request.contextPath}/recipient/requests" class="view-all-btn">View All</a>
                 </div>
 
                 <% if (recentReqs != null && !recentReqs.isEmpty()) { %>
