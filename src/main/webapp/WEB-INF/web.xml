@@ -151,6 +151,16 @@
     <url-pattern>/admin/notifications/api</url-pattern>
   </servlet-mapping>
 
+  <!-- Recipient Servlets -->
+  <servlet>
+    <servlet-name>RecipientDashboardServlet</servlet-name>
+    <servlet-class>com.lifelink.servlet.RecipientDashboardServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RecipientDashboardServlet</servlet-name>
+    <url-pattern>/recipient/dashboard</url-pattern>
+  </servlet-mapping>
+
   <!-- Listeners -->
   <listener>
     <listener-class>com.lifelink.listener.AppContextListener</listener-class>

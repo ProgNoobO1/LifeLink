@@ -56,6 +56,8 @@ public class LoginServlet extends HttpServlet {
         String contextPath = req.getContextPath();
         if (user.getRole() == User.Role.ADMIN) {
             resp.sendRedirect(contextPath + "/admin/dashboard");
+        } else if (user.getRole() == User.Role.RECIPIENT) {
+            resp.sendRedirect(contextPath + "/recipient/dashboard");
         } else {
             resp.sendRedirect(contextPath + "/index.jsp");
         }
