@@ -242,7 +242,7 @@
                         <div class="card-title">Recent Requests</div>
                         <div class="card-subtitle">Your blood request history</div>
                     </div>
-                    <a href="${pageContext.request.contextPath}/recipient/requests" class="view-all-btn">View All</a>
+                    <a href="${pageContext.request.contextPath}/views/recipient/create_request.jsp" class="view-all-btn">View All</a>
                 </div>
 
                 <% if (recentReqs != null && !recentReqs.isEmpty()) { %>
@@ -306,7 +306,7 @@
                     <div class="qa-heading">Need Blood?</div>
                     <div class="qa-heading" style="font-size:.88rem;margin-bottom:.05rem;">Create a Request</div>
                     <div class="qa-sub">Fast. Simple. Life-saving.</div>
-                    <a href="${pageContext.request.contextPath}/recipient/requests?action=new" class="create-req-btn">+ Create Request</a>
+                    <a href="${pageContext.request.contextPath}/views/recipient/create_request.jsp" class="create-req-btn">+ Create Request</a>
                 </div>
 
                 <!-- Request Tips -->

@@ -1,17 +1,17 @@
 package com.lifelink.utils;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
 import java.sql.Connection;
 import java.sql.SQLException;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class DBConnection {
     private static final HikariDataSource dataSource;
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/lifelink_db?useSSL=false&serverTimezone=UTC";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "1234567890";
+    private static final String DB_PASSWORD = "your_new_password";
 
     static {
         HikariConfig config = new HikariConfig();
