@@ -110,9 +110,6 @@
         .page-title h1 { font-size: 1.25rem; line-height: 1.2; font-weight: 800; color: #1f2937; }
         .page-title p { margin-top: .35rem; font-size: .78rem; color: #98a2b3; }
         .topbar-right { display: flex; align-items: center; gap: .95rem; }
-        .bell { position: relative; width: 40px; height: 40px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; color: #6b7280; display: grid; place-items: center; }
-        .bell svg { width: 19px; height: 19px; fill: currentColor; }
-        .bell-count { position: absolute; top: -5px; right: -4px; min-width: 16px; height: 16px; border-radius: 999px; background: #c91c20; color: #fff; font-size: .62rem; font-weight: 800; line-height: 16px; text-align: center; }
         .top-user { display: flex; align-items: center; gap: .7rem; min-width: 0; }
         .avatar { width: 38px; height: 38px; border-radius: 999px; background: linear-gradient(135deg, #b91c1c, #ef4444); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: .78rem; border: 2px solid #f4d0d0; }
         .top-user strong { display: block; font-size: .84rem; color: #344054; }
@@ -174,7 +171,7 @@
         .status-cancelled { color: #667085; background: #f5f6f8; border-color: #e5e7eb; }
         .status-cancelled::before { background: #98a2b3; }
         .actions { display: flex; align-items: center; gap: .5rem; }
-        .action-btn { display: inline-flex; align-items: center; justify-content: center; gap: .38rem; height: 30px; border: 0; border-radius: 8px; padding: 0 .75rem; font-size: .76rem; font-weight: 800; cursor: pointer; }
+        .action-btn { display: inline-flex; align-items: center; justify-content: center; gap: .38rem; height: 30px; border: 0; border-radius: 8px; padding: 0 .75rem; font-size: .76rem; font-weight: 800; cursor: pointer; text-decoration: none; }
         .view-btn { color: #c91c20; background: #fee2e2; }
         .cancel-btn { color: #667085; background: #f1f3f6; border: 1px solid #e5e7eb; }
         .cancel-btn:disabled { opacity: .42; cursor: not-allowed; }
@@ -236,10 +233,7 @@
             </div>
         </div>
         <div class="topbar-right">
-            <button class="bell" type="button" title="Notifications">
-                <svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.71V3a2 2 0 1 0-4 0v1.29A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z"/></svg>
-                <span class="bell-count">1</span>
-            </button>
+            <jsp:include page="/includes/recipient_notifications.jsp" />
             <div class="top-user">
                 <div class="avatar"><%= esc(initials) %></div>
                 <div>
@@ -339,10 +333,10 @@
                             <td><span class="status-badge <%= statusClass(displayStatus) %>"><%= displayStatus(displayStatus) %></span></td>
                             <td>
                                 <div class="actions">
-                                    <button class="action-btn view-btn" type="button" data-request-id="#REQ-<%= String.format("%03d", item.getId()) %>">
+                                    <a class="action-btn view-btn" href="${pageContext.request.contextPath}/recipient/request-detail?id=<%= item.getId() %>">
                                         <svg viewBox="0 0 24 24"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7Zm0 2C8.7 7 5.9 9.4 4.4 12 5.9 14.6 8.7 17 12 17s6.1-2.4 7.6-5C18.1 9.4 15.3 7 12 7Zm0 2.2A2.8 2.8 0 1 1 12 14.8a2.8 2.8 0 0 1 0-5.6Z"/></svg>
                                         View
-                                    </button>
+                                    </a>
                                     <form method="post" action="${pageContext.request.contextPath}/recipient/requests">
                                         <input type="hidden" name="csrfToken" value="<%= esc(csrfToken) %>">
                                         <input type="hidden" name="action" value="cancel">
@@ -466,12 +460,6 @@ prevPage.addEventListener('click', () => {
 nextPage.addEventListener('click', () => {
     currentPage += 1;
     render();
-});
-
-document.querySelectorAll('.view-btn').forEach(button => {
-    button.addEventListener('click', () => {
-        alert(button.dataset.requestId + ' detail page will be available in the request-detail branch.');
-    });
 });
 
 document.querySelectorAll('.cancel-btn:not(:disabled)').forEach(button => {

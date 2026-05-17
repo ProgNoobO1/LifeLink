@@ -1,7 +1,9 @@
 package com.lifelink.servlet;
 
+import com.lifelink.dao.NotificationDAO;
 import com.lifelink.dao.RequestDAO;
 import com.lifelink.dao.RequestDAO.CreateRequestData;
+import com.lifelink.dao.RequestDetailDAO;
 import com.lifelink.model.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -16,12 +18,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-@WebServlet(urlPatterns = {"/recipient/create-request", "/recipient/requests"})
+@WebServlet(urlPatterns = {"/recipient/create-request", "/recipient/requests", "/recipient/request-detail"})
 public class RequestServlet extends HttpServlet {
 
     private static final int MAX_NAME_LENGTH = 150;
     private static final int MAX_HOSPITAL_LENGTH = 200;
     private final RequestDAO requestDAO = new RequestDAO();
+    private final RequestDetailDAO requestDetailDAO = new RequestDetailDAO();
+    private final NotificationDAO notificationDAO = new NotificationDAO();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -41,6 +45,14 @@ public class RequestServlet extends HttpServlet {
 
         if ("cancel".equals(req.getParameter("action"))) {
             handleCancel(req, resp, session, currentUser);
+            return;
+        }
+        if ("complete".equals(req.getParameter("action"))) {
+            handleComplete(req, resp, session, currentUser);
+            return;
+        }
+        if ("markNotificationsRead".equals(req.getParameter("action"))) {
+            handleMarkNotificationsRead(req, resp, session, currentUser);
             return;
         }
 
@@ -86,6 +98,11 @@ public class RequestServlet extends HttpServlet {
         }
 
         try {
+            if (req.getServletPath().contains("/request-detail")) {
+                showRequestDetail(req, resp, currentUser);
+                return;
+            }
+
             Map<String, Integer> requestCounts = requestDAO.countRequestsByStatus(currentUser.getId());
             List<RequestDAO.RequestListItem> requests = requestDAO.findRequestsByRecipient(currentUser.getId());
             req.setAttribute("requestCounts", requestCounts);
@@ -98,6 +115,33 @@ public class RequestServlet extends HttpServlet {
             req.setAttribute("requestListError", "Unable to load your requests right now. Please try again shortly.");
             req.getRequestDispatcher("/views/recipient/my_requests.jsp").forward(req, resp);
         }
+    }
+
+    private void showRequestDetail(HttpServletRequest req, HttpServletResponse resp, User currentUser)
+            throws ServletException, IOException, SQLException {
+        long requestId;
+        try {
+            requestId = Long.parseLong(clean(req.getParameter("id")));
+        } catch (NumberFormatException e) {
+            resp.sendRedirect(req.getContextPath() + "/recipient/requests");
+            return;
+        }
+
+        RequestDetailDAO.RequestDetail detail = requestDetailDAO.findByIdForRecipient(requestId, currentUser.getId());
+        if (detail == null) {
+            resp.sendRedirect(req.getContextPath() + "/recipient/requests");
+            return;
+        }
+
+        List<RequestDetailDAO.MatchedResponder> responders = requestDetailDAO.findAcceptedResponders(requestId);
+        int unreadCount = notificationDAO.getUnreadCount(currentUser.getId().intValue());
+        List<NotificationDAO.NotificationItem> recentNotifications = notificationDAO.getRecent(currentUser.getId().intValue());
+        req.setAttribute("requestDetail", detail);
+        req.setAttribute("matchedResponders", responders);
+        req.setAttribute("unreadNotificationCount", unreadCount);
+        req.setAttribute("recentNotifications", recentNotifications);
+        req.setAttribute("currentUser", currentUser);
+        req.getRequestDispatcher("/views/recipient/request_detail.jsp").forward(req, resp);
     }
 
     private User getCurrentUser(HttpSession session) {
@@ -196,6 +240,7 @@ public class RequestServlet extends HttpServlet {
             long requestId = Long.parseLong(clean(req.getParameter("requestId")));
             boolean cancelled = requestDAO.cancelPendingRequest(requestId, currentUser.getId());
             if (cancelled) {
+                notifyRespondersOfCancellation(requestId);
                 session.setAttribute("requestSuccess", "Request #REQ-" + String.format("%03d", requestId) + " was cancelled.");
             } else {
                 session.setAttribute("requestError", "Only pending requests can be cancelled.");
@@ -207,7 +252,95 @@ public class RequestServlet extends HttpServlet {
             e.printStackTrace(System.err);
             session.setAttribute("requestError", "We could not cancel that request right now. Please try again shortly.");
         }
+        String returnTo = clean(req.getParameter("returnTo"));
+        if ("detail".equals(returnTo)) {
+            resp.sendRedirect(req.getContextPath() + "/recipient/request-detail?id=" + clean(req.getParameter("requestId")));
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/recipient/requests");
+        }
+    }
+
+    private void handleComplete(HttpServletRequest req, HttpServletResponse resp, HttpSession session, User currentUser)
+            throws IOException {
+        String csrfFromSession = (String) session.getAttribute("csrfToken");
+        String csrfFromRequest = req.getParameter("csrfToken");
+        String requestIdRaw = clean(req.getParameter("requestId"));
+        if (csrfFromSession == null || csrfFromRequest == null || !csrfFromSession.equals(csrfFromRequest)) {
+            session.setAttribute("requestError", "Your session expired. Please try again.");
+            resp.sendRedirect(req.getContextPath() + "/recipient/request-detail?id=" + requestIdRaw);
+            return;
+        }
+
+        try {
+            long requestId = Long.parseLong(requestIdRaw);
+            boolean completed = requestDetailDAO.completeAcceptedRequest(requestId, currentUser.getId());
+            if (completed) {
+                notifyRespondersOfCompletion(requestId);
+                session.setAttribute("requestSuccess", "Request #REQ-" + String.format("%03d", requestId) + " was marked completed.");
+            } else {
+                session.setAttribute("requestError", "Only accepted requests can be marked completed.");
+            }
+        } catch (NumberFormatException e) {
+            session.setAttribute("requestError", "Invalid request selected.");
+        } catch (SQLException e) {
+            System.err.println("[RequestServlet] Error completing request: " + e.getMessage());
+            e.printStackTrace(System.err);
+            session.setAttribute("requestError", "We could not complete that request right now. Please try again shortly.");
+        }
+        resp.sendRedirect(req.getContextPath() + "/recipient/request-detail?id=" + requestIdRaw);
+    }
+
+    private void handleMarkNotificationsRead(HttpServletRequest req, HttpServletResponse resp, HttpSession session, User currentUser)
+            throws IOException {
+        String csrfFromSession = (String) session.getAttribute("csrfToken");
+        String csrfFromRequest = req.getParameter("csrfToken");
+        String requestIdRaw = clean(req.getParameter("requestId"));
+        String returnUrl = clean(req.getParameter("returnUrl"));
+        if (csrfFromSession == null || csrfFromRequest == null || !csrfFromSession.equals(csrfFromRequest)) {
+            redirectAfterNotificationRead(req, resp, requestIdRaw, returnUrl);
+            return;
+        }
+        try {
+            notificationDAO.markAllAsRead(currentUser.getId().intValue());
+        } catch (SQLException e) {
+            System.err.println("[RequestServlet] Error marking notifications read: " + e.getMessage());
+        }
+        redirectAfterNotificationRead(req, resp, requestIdRaw, returnUrl);
+    }
+
+    private void redirectAfterNotificationRead(HttpServletRequest req, HttpServletResponse resp, String requestIdRaw, String returnUrl)
+            throws IOException {
+        if (returnUrl != null && returnUrl.startsWith(req.getContextPath() + "/")) {
+            resp.sendRedirect(returnUrl);
+            return;
+        }
+        if (requestIdRaw != null && !requestIdRaw.isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/recipient/request-detail?id=" + requestIdRaw);
+            return;
+        }
         resp.sendRedirect(req.getContextPath() + "/recipient/requests");
+    }
+
+    private void notifyRespondersOfCancellation(long requestId) throws SQLException {
+        List<Long> responderIds = requestDetailDAO.findAcceptedResponderIds(requestId);
+        for (Long responderId : responderIds) {
+            notificationDAO.insertNotification(
+                responderId.intValue(),
+                "Blood request has been cancelled",
+                "Request #REQ-" + requestId + " has been cancelled by the recipient"
+            );
+        }
+    }
+
+    private void notifyRespondersOfCompletion(long requestId) throws SQLException {
+        List<Long> responderIds = requestDetailDAO.findAcceptedResponderIds(requestId);
+        for (Long responderId : responderIds) {
+            notificationDAO.insertNotification(
+                responderId.intValue(),
+                "Thank you for your donation!",
+                "The recipient has confirmed donation for request #REQ-" + requestId
+            );
+        }
     }
 
     private void forwardWithError(HttpServletRequest req, HttpServletResponse resp, String message)
