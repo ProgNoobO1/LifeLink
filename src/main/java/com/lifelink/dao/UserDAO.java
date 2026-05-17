@@ -4,6 +4,7 @@ import com.lifelink.model.User;
 import com.lifelink.utils.DBConnection;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +27,16 @@ public class UserDAO {
 
         int isActive = rs.getInt("is_active");
         user.setStatus(isActive == 1 ? User.Status.ACTIVE : User.Status.INACTIVE);
+        user.setApproved(rs.getInt("is_approved") == 1);
+
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) {
+            user.setCreatedAt(createdAt.toLocalDateTime());
+        }
+        Timestamp updatedAt = rs.getTimestamp("updated_at");
+        if (updatedAt != null) {
+            user.setUpdatedAt(updatedAt.toLocalDateTime());
+        }
 
         return user;
     }
@@ -64,7 +75,7 @@ public class UserDAO {
 
     public boolean save(User user) {
         String sql = "INSERT INTO users (full_name, email, phone, blood_group_id, password_hash, confirm_password_hash, role, is_active, is_approved) " +
-                     "VALUES (?, ?, ?, (SELECT id FROM blood_groups WHERE name = ?), ?, ?, ?, ?, 1)";
+                     "VALUES (?, ?, ?, (SELECT id FROM blood_groups WHERE name = ?), ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, user.getFullName());
@@ -75,6 +86,7 @@ public class UserDAO {
             stmt.setString(6, user.getPasswordHash());
             stmt.setString(7, user.getRole().name().toLowerCase());
             stmt.setInt(8, user.getStatus() == User.Status.ACTIVE ? 1 : 0);
+            stmt.setInt(9, user.isApproved() ? 1 : 0);
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
@@ -95,7 +107,7 @@ public class UserDAO {
 
     public boolean update(User user) {
         String sql = "UPDATE users SET full_name = ?, email = ?, phone = ?, " +
-                     "blood_group_id = (SELECT id FROM blood_groups WHERE name = ?), password_hash = ?, role = ?, is_active = ? WHERE id = ?";
+                     "blood_group_id = (SELECT id FROM blood_groups WHERE name = ?), password_hash = ?, role = ?, is_active = ?, is_approved = ? WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, user.getFullName());
@@ -105,7 +117,8 @@ public class UserDAO {
             stmt.setString(5, user.getPasswordHash());
             stmt.setString(6, user.getRole().name().toLowerCase());
             stmt.setInt(7, user.getStatus() == User.Status.ACTIVE ? 1 : 0);
-            stmt.setLong(8, user.getId());
+            stmt.setInt(8, user.isApproved() ? 1 : 0);
+            stmt.setLong(9, user.getId());
 
             int affectedRows = stmt.executeUpdate();
             return affectedRows > 0;

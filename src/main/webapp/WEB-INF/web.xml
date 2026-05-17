@@ -134,6 +134,15 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>ApproveUserServlet</servlet-name>
+    <servlet-class>com.lifelink.servlet.ApproveUserServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ApproveUserServlet</servlet-name>
+    <url-pattern>/admin/users/approve</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>NotificationServlet</servlet-name>
     <servlet-class>com.lifelink.servlet.NotificationServlet</servlet-class>
   </servlet>
