@@ -18,12 +18,12 @@ public class RequestExportServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please login first");
+            resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please+login+first");
             return;
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }

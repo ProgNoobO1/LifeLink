@@ -26,7 +26,7 @@ public class UserListServlet extends HttpServlet {
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }

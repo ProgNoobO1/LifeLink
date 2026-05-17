@@ -165,7 +165,7 @@ public class UserDAO {
         String sql = "SELECT COUNT(*) FROM users WHERE role = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, role.name());
+            stmt.setString(1, role.name().toLowerCase());
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getLong(1);

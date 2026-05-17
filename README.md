@@ -88,10 +88,10 @@ target/BloodManagementSystem.war
 
 | Page | URL |
 |---|---|
-| Home/Login | `http://localhost:8080/BloodManagementSystem/` |
-| Register | `http://localhost:8080/BloodManagementSystem/register` |
-| Admin Dashboard | `http://localhost:8080/BloodManagementSystem/admin/dashboard` |
-| Manage Users | `http://localhost:8080/BloodManagementSystem/admin/users` |
+| Home/Login | `http://localhost:8081/BloodManagementSystem/` |
+| Register | `http://localhost:8081/BloodManagementSystem/register` |
+| Admin Dashboard | `http://localhost:8081/BloodManagementSystem/admin/dashboard` |
+| Manage Users | `http://localhost:8081/BloodManagementSystem/admin/users` |
 
 **Admin credentials:**
 - Email: `admin@lifelink.org`

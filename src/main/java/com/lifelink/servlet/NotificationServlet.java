@@ -19,7 +19,7 @@ public class NotificationServlet extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("currentUser");
-        if (user.getRole() != User.Role.ADMIN) {
+        if (user == null || user.getRole() == null || user.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }

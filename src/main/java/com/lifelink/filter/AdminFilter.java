@@ -23,13 +23,13 @@ public class AdminFilter implements Filter {
 
         // Check if user is logged in
         if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please login first");
+            resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please+login+first");
             return;
         }
 
         // Check if user is an admin
         User user = (User) session.getAttribute("currentUser");
-        if (user.getRole() != User.Role.ADMIN) {
+        if (user == null || user.getRole() == null || user.getRole() != User.Role.ADMIN) {
             resp.sendRedirect(req.getContextPath() + "/index.jsp?error=AccessDenied");
             return;
         }

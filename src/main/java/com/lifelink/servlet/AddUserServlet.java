@@ -25,7 +25,7 @@ public class AddUserServlet extends HttpServlet {
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }
@@ -39,6 +39,9 @@ public class AddUserServlet extends HttpServlet {
         String statusStr = req.getParameter("status");
 
         try {
+            if (roleStr == null || roleStr.isEmpty() || statusStr == null || statusStr.isEmpty()) {
+                throw new IllegalArgumentException("Role and status are required.");
+            }
             User.Role role = User.Role.valueOf(roleStr);
             User.Status status = User.Status.valueOf(statusStr);
 
@@ -66,7 +69,7 @@ public class AddUserServlet extends HttpServlet {
             req.setAttribute("status", statusStr);
             req.getRequestDispatcher("/views/Admin/adminManageUsers.jsp").forward(req, resp);
         } catch (IllegalArgumentException e) {
-            req.setAttribute("error", "Invalid role or status selected.");
+            req.setAttribute("error", e.getMessage() != null ? e.getMessage() : "Invalid role or status selected.");
             req.setAttribute("fullName", fullName);
             req.setAttribute("email", email);
             req.setAttribute("phone", phone);

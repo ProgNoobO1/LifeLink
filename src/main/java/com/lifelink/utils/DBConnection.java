@@ -39,9 +39,7 @@ public class DBConnection {
         try {
             return dataSource.getConnection();
         } catch (SQLException e) {
-            System.err.println("❌ Database Connection Failed!");
-            e.printStackTrace();
-            return null;
+            throw new RuntimeException("❌ Database Connection Failed!", e);
         }
     }
 

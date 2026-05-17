@@ -18,19 +18,19 @@ public class RequestActionServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please login first");
+            resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please+login+first");
             return;
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }
 
         String idParam = req.getParameter("id");
         if (idParam == null || idParam.isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid request");
+            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid+request");
             return;
         }
 
@@ -38,13 +38,13 @@ public class RequestActionServlet extends HttpServlet {
         try {
             requestId = Long.parseLong(idParam);
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid request ID");
+            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid+request+ID");
             return;
         }
 
         BloodRequest request = requestDAO.findById(requestId);
         if (request == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Request not found");
+            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Request+not+found");
             return;
         }
 
@@ -56,12 +56,12 @@ public class RequestActionServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("currentUser") == null) {
-            resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please login first");
+            resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please+login+first");
             return;
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }
@@ -70,7 +70,7 @@ public class RequestActionServlet extends HttpServlet {
         String idParam = req.getParameter("id");
 
         if (idParam == null || idParam.isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid request");
+            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid+request");
             return;
         }
 
@@ -78,13 +78,13 @@ public class RequestActionServlet extends HttpServlet {
         try {
             requestId = Long.parseLong(idParam);
         } catch (NumberFormatException e) {
-            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid request ID");
+            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid+request+ID");
             return;
         }
 
         BloodRequest request = requestDAO.findById(requestId);
         if (request == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Request not found");
+            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Request+not+found");
             return;
         }
 
@@ -98,7 +98,7 @@ public class RequestActionServlet extends HttpServlet {
             success = requestDAO.updateStatus(requestId, BloodRequest.Status.REJECTED);
             message = success ? "Request rejected successfully." : "Failed to reject request.";
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid action");
+            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid+action");
             return;
         }
 

@@ -21,7 +21,7 @@ public class AdminDashboardServlet extends HttpServlet {
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }
@@ -49,8 +49,9 @@ public class AdminDashboardServlet extends HttpServlet {
         List<Map<String, String>> recentActivities = new ArrayList<>();
         for (User u : recentUsers) {
             Map<String, String> act = new HashMap<>();
-            act.put("title", "New " + u.getRole().toString().toLowerCase() + " registered");
-            act.put("desc", u.getFullName() + " joined as a " + u.getRole().toString().toLowerCase());
+            String roleLabel = u.getRole() != null ? u.getRole().toString().toLowerCase() : "user";
+            act.put("title", "New " + roleLabel + " registered");
+            act.put("desc", u.getFullName() + " joined as a " + roleLabel);
             act.put("time", "Recently");
             act.put("iconBg", u.getRole() == User.Role.DONOR ? "#d1fae5" :
                               u.getRole() == User.Role.RECIPIENT ? "#dbeafe" :

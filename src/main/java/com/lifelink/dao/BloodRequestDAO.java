@@ -31,7 +31,8 @@ public class BloodRequestDAO {
         req.setRequesterEmail(rs.getString("requester_email"));
         req.setBloodGroup(rs.getString("blood_group"));
         req.setUnits(rs.getInt("units_needed"));
-        req.setRequestDate(rs.getTimestamp("requested_at").toLocalDateTime().toLocalDate());
+        Timestamp requestedAt = rs.getTimestamp("requested_at");
+        req.setRequestDate(requestedAt != null ? requestedAt.toLocalDateTime().toLocalDate() : null);
         req.setStatus(dbToStatus(rs.getString("status")));
         return req;
     }

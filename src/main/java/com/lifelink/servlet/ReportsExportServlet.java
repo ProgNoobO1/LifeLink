@@ -31,7 +31,7 @@ public class ReportsExportServlet extends HttpServlet {
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }
@@ -42,8 +42,13 @@ public class ReportsExportServlet extends HttpServlet {
 
         LocalDate toDate = LocalDate.now();
         LocalDate fromDate = toDate.withDayOfMonth(1);
-        if (fromDateStr != null && !fromDateStr.isEmpty()) fromDate = LocalDate.parse(fromDateStr, DATE_FMT);
-        if (toDateStr != null && !toDateStr.isEmpty()) toDate = LocalDate.parse(toDateStr, DATE_FMT);
+        try {
+            if (fromDateStr != null && !fromDateStr.isEmpty()) fromDate = LocalDate.parse(fromDateStr, DATE_FMT);
+            if (toDateStr != null && !toDateStr.isEmpty()) toDate = LocalDate.parse(toDateStr, DATE_FMT);
+        } catch (java.time.format.DateTimeParseException e) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid date format. Please use yyyy-MM-dd.");
+            return;
+        }
 
         List<Map<String, Object>> data = reportDAO.getDonationsForExport(fromDate, toDate);
 

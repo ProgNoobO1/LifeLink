@@ -55,6 +55,9 @@ public class RegisterServlet extends HttpServlet {
         }
 
         try {
+            if (roleStr == null || roleStr.isEmpty()) {
+                throw new IllegalArgumentException("Role is required.");
+            }
             User.Role role = User.Role.valueOf(roleStr.toUpperCase());
             userService.registerUser(fullName.trim(), email.trim(), phone, bloodGroup, password, role, User.Status.ACTIVE);
 
@@ -70,7 +73,7 @@ public class RegisterServlet extends HttpServlet {
         } catch (AuthException e) {
             redirectWithError(req, resp, e.getMessage());
         } catch (IllegalArgumentException e) {
-            redirectWithError(req, resp, "Invalid role selected.");
+            redirectWithError(req, resp, e.getMessage() != null ? e.getMessage() : "Invalid role selected.");
         }
     }
 

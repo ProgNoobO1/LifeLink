@@ -24,7 +24,7 @@ public class EditUserServlet extends HttpServlet {
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }
@@ -40,6 +40,9 @@ public class EditUserServlet extends HttpServlet {
 
         try {
             Long userId = Long.parseLong(idParam);
+            if (roleStr == null || roleStr.isEmpty() || statusStr == null || statusStr.isEmpty()) {
+                throw new IllegalArgumentException("Role and status are required.");
+            }
             User.Role role = User.Role.valueOf(roleStr);
             User.Status status = User.Status.valueOf(statusStr);
 
@@ -52,7 +55,7 @@ public class EditUserServlet extends HttpServlet {
         } catch (AuthException e) {
             resp.sendRedirect(req.getContextPath() + "/admin/users?error=" + URLEncoder.encode(e.getMessage(), "UTF-8"));
         } catch (IllegalArgumentException e) {
-            resp.sendRedirect(req.getContextPath() + "/admin/users?error=" + URLEncoder.encode("Invalid input provided.", "UTF-8"));
+            resp.sendRedirect(req.getContextPath() + "/admin/users?error=" + URLEncoder.encode(e.getMessage() != null ? e.getMessage() : "Invalid input provided.", "UTF-8"));
         }
     }
 }
