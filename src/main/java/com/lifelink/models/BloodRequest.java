@@ -13,6 +13,12 @@ public class BloodRequest {
     
     // For UI display
     private String hospitalName; 
+    
+    // Recipient specific fields
+    private int requesterId;
+    private String patientName;
+    private int unitsNeeded;
+    private String urgency;
 
     public BloodRequest() {}
 
@@ -39,4 +45,17 @@ public class BloodRequest {
 
     public String getHospitalName() { return hospitalName; }
     public void setHospitalName(String hospitalName) { this.hospitalName = hospitalName; }
+
+    public int getRequesterId() { return requesterId; }
+    public void setRequesterId(int requesterId) { this.requesterId = requesterId; }
+
+    public String getPatientName() { return patientName; }
+    public void setPatientName(String patientName) { this.patientName = patientName; }
+
+    public int getUnitsNeeded() { return unitsNeeded; }
+    public void setUnitsNeeded(int unitsNeeded) { this.unitsNeeded = unitsNeeded; }
+
+    public String getUrgency() { return urgency; }
+    public void setUrgency(String urgency) { this.urgency = urgency; }
 }
+

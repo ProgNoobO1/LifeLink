@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -19,7 +20,7 @@
             <c:if test="${param.error == 'donation_limit'}">
                 <div class="alert alert-danger" style="background: rgba(217, 4, 41, 0.1); color: var(--active-red); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid rgba(217, 4, 41, 0.2); display: flex; align-items: center; gap: 0.75rem;">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <span>You cannot mark yourself as available yet. Please wait at least 15 days after your last donation.</span>
+                    <span>You cannot mark yourself as available yet. Please wait at least 90 days after your last donation.</span>
                 </div>
             </c:if>
             <c:if test="${param.success == 'accepted'}">
@@ -41,7 +42,7 @@
                         <span class="label">Donations Completed</span>
                     </div>
                     <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: 50%;"></div>
+                        <div class="progress-bar" style="width: ${totalDonations >= 10 ? 100 : totalDonations * 10}%;"></div>
                     </div>
                 </div>
                 
@@ -53,6 +54,9 @@
                     </div>
                     <div class="stat-content">
                         <span class="value" style="color: ${donor.available ? 'var(--success)' : 'var(--text-muted)'}">${donor.available ? 'Available' : 'Unavailable'}</span>
+                        <c:if test="${not empty cooldownDaysLeft}">
+                            <span style="display: block; margin-top: 5px; color: var(--active-red); font-size: 0.85rem; font-weight: 600;"><i class="fas fa-history"></i> Cooldown: ${cooldownDaysLeft} days remaining</span>
+                        </c:if>
                         <form action="${pageContext.request.contextPath}/donor/toggleAvailability" method="POST" style="margin-top: 10px;">
                             <input type="hidden" name="isAvailable" value="${!donor.available}">
                             <button type="submit" class="btn-premium ${donor.available ? 'btn-secondary' : 'btn-primary'}" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">
@@ -78,7 +82,7 @@
                                         <td style="width: 50px;"><div class="stat-icon icon-green" style="width:32px; height:32px; font-size: 0.9rem;"><i class="fas fa-check"></i></div></td>
                                         <td>
                                             <span style="font-weight: 600; font-size: 0.85rem;">Whole Blood Donation</span><br>
-                                            <span style="font-size: 0.75rem; color: var(--text-muted);">${item.requestDate} • ${item.hospitalName}</span>
+                                            <span style="font-size: 0.75rem; color: var(--text-muted);"><fmt:formatDate value="${item.requestDate}" pattern="MMM dd, yyyy" /> • ${item.hospitalName}</span>
                                         </td>
                                         <td style="text-align: right;"><span class="status-pill status-active">Completed</span></td>
                                     </tr>
@@ -98,7 +102,7 @@
             <div class="card-premium">
                 <div class="card-title">
                     <span>Incoming Blood Requests</span>
-                    <a href="#" style="font-size: 0.75rem; color: var(--active-red); text-decoration: none;">View All</a>
+                    <a href="${pageContext.request.contextPath}/donor/requests" style="font-size: 0.75rem; color: var(--active-red); text-decoration: none;">View All</a>
                 </div>
                 <div class="requests-grid">
                     <c:forEach var="req" items="${requests}">
@@ -113,10 +117,9 @@
                             </div>
                             <div class="request-info-row">
                                 <span><i class="fas fa-tint"></i> ${req.bloodGroup}</span>
-                                <span><i class="fas fa-layer-group"></i> 2 Units</span>
-                                <span><i class="far fa-calendar-alt"></i> Oct 15, 2024</span>
+                                <span><i class="far fa-calendar-alt"></i> <fmt:formatDate value="${req.requestDate}" pattern="MMM dd, yyyy" /></span>
                             </div>
-                            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Patient requires ${req.bloodGroup} blood urgently for a surgical procedure scheduled tomorrow morning.</p>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Patient requires ${req.bloodGroup} blood urgently at ${req.location}. Your immediate donation makes a massive impact.</p>
                             <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
                                 <a href="${pageContext.request.contextPath}/donor/requestDetails?requestId=${req.id}" class="btn-premium btn-primary" style="flex: 1;">View Details</a>
                                 <form action="${pageContext.request.contextPath}/donor/updateStatus" method="POST" style="flex: 0;">

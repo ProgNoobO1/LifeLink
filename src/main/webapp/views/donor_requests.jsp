@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -33,10 +34,10 @@
                             </div>
                             <div class="request-info-row">
                                 <span><i class="fas fa-tint"></i> ${req.bloodGroup}</span>
-                                <span><i class="fas fa-layer-group"></i> 2 Units</span>
+                                <span><i class="far fa-calendar-alt"></i> <fmt:formatDate value="${req.requestDate}" pattern="MMM dd, yyyy" /></span>
                             </div>
                             <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-top: 0.5rem;">
-                                Hospital is requesting ${req.bloodGroup} blood donation at ${req.location}.
+                                Patient requires ${req.bloodGroup} blood urgently at ${req.location}. Your response can make a critical difference.
                             </p>
                             <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
                                 <a href="${pageContext.request.contextPath}/donor/requestDetails?requestId=${req.id}" class="btn-premium btn-primary" style="flex: 1;">View Details</a>

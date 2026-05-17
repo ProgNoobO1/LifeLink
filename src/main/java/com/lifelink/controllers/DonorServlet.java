@@ -19,6 +19,11 @@ public class DonorServlet extends HttpServlet {
 
     private DonorDAO donorDAO;
 
+    // For testing injection
+    public void setDonorDAO(DonorDAO donorDAO) {
+        this.donorDAO = donorDAO;
+    }
+
     @Override
     public void init() throws ServletException {
         donorDAO = new DonorDAO();
@@ -107,8 +112,8 @@ public class DonorServlet extends HttpServlet {
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/donor/dashboard");
-                break;
-        }
+    }
+    }
 
     private List<Notification> getNotifications(Donor donor, List<BloodRequest> requests) {
         List<Notification> notifications = new java.util.ArrayList<>();
@@ -127,7 +132,7 @@ public class DonorServlet extends HttpServlet {
         if (donor != null && !donor.isAvailable() && donor.getLastDonationDate() != null) {
             long diffInMillies = Math.abs(System.currentTimeMillis() - donor.getLastDonationDate().getTime());
             long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
-            if (diffInDays >= 15) {
+            if (diffInDays >= 90) {
                 notifications.add(new Notification(
                     "Renewal",
                     "You are now eligible to donate again! Mark yourself as available.",
@@ -139,7 +144,6 @@ public class DonorServlet extends HttpServlet {
         
         return notifications;
     }
-    }
 
     private void showDashboard(HttpServletRequest request, HttpServletResponse response, int donorId) throws ServletException, IOException {
         Donor donor = donorDAO.getDonorById(donorId);
@@ -149,6 +153,14 @@ public class DonorServlet extends HttpServlet {
         int totalDonations = history.size();
         
         List<Notification> notifications = getNotifications(donor, requests);
+        
+        if (donor != null && !donor.isAvailable() && donor.getLastDonationDate() != null) {
+            long diffInMillies = Math.abs(System.currentTimeMillis() - donor.getLastDonationDate().getTime());
+            long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+            if (diffInDays < 90) {
+                request.setAttribute("cooldownDaysLeft", 90 - diffInDays);
+            }
+        }
         
         request.setAttribute("donor", donor);
         request.setAttribute("requests", requests);
@@ -181,10 +193,13 @@ public class DonorServlet extends HttpServlet {
         
         List<Notification> notifications = getNotifications(donor, requests);
         
+        List<com.lifelink.models.District> districts = donorDAO.getNepalDistricts();
+        
         request.setAttribute("donor", donor);
         request.setAttribute("requests", requests);
         request.setAttribute("notifications", notifications);
         request.setAttribute("totalDonations", totalDonations);
+        request.setAttribute("districts", districts);
         request.setAttribute("pageTitle", "My Profile");
         request.setAttribute("pageSubtitle", "Manage your personal and medical information.");
         request.getRequestDispatcher("/views/donor_profile.jsp").forward(request, response);
@@ -213,7 +228,19 @@ public class DonorServlet extends HttpServlet {
         donor.setName(request.getParameter("name"));
         donor.setPhone(request.getParameter("phone"));
         donor.setBloodGroup(request.getParameter("bloodGroup"));
-        donor.setLocation(request.getParameter("location"));
+        
+        String districtIdStr = request.getParameter("districtId");
+        if (districtIdStr != null && !districtIdStr.trim().isEmpty()) {
+            donor.setDistrictId(Integer.parseInt(districtIdStr));
+        }
+        
+        donor.setAddress(request.getParameter("address"));
+        donor.setGender(request.getParameter("gender"));
+        
+        String weightStr = request.getParameter("weightKg");
+        if (weightStr != null && !weightStr.trim().isEmpty()) {
+            donor.setWeightKg(Double.parseDouble(weightStr));
+        }
         
         donorDAO.updateProfile(donor);
         response.sendRedirect(request.getContextPath() + "/donor/profile?success=true");

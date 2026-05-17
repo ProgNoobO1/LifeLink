@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="jakarta.tags.core" prefix="c" %>
+<%@ taglib uri="jakarta.tags.fmt" prefix="fmt" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,8 +47,8 @@
                             </div>
                             <div style="background: var(--background-gray); padding: 1rem; border-radius: 12px;">
                                 <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;"><i class="fas fa-layer-group"></i> Units Needed</span>
-                                <span style="font-weight: 600; font-size: 1.1rem;">2</span><br>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">Units of whole blood</span>
+                                <span style="font-weight: 600; font-size: 1.1rem;">As Needed</span><br>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">Standard whole blood</span>
                             </div>
                         </div>
 
@@ -65,8 +66,8 @@
                             </div>
                             <div style="border: 1px solid var(--border-light); padding: 1rem; border-radius: 12px;">
                                 <span style="display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;"><i class="far fa-calendar-alt"></i> Request Date</span>
-                                <span style="font-weight: 600; font-size: 0.9rem;">October 15, 2024</span><br>
-                                <span style="font-size: 0.75rem; color: var(--text-muted);">Needed by: Oct 16 — 08:00 AM</span>
+                                <span style="font-weight: 600; font-size: 0.9rem;"><fmt:formatDate value="${req.requestDate}" pattern="MMMM dd, yyyy" /></span><br>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">Posted at: <fmt:formatDate value="${req.requestDate}" pattern="hh:mm a" /></span>
                             </div>
                         </div>
 
