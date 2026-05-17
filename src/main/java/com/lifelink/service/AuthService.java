@@ -26,6 +26,11 @@ public class AuthService {
             throw new AuthException("Your account is inactive. Please contact support.");
         }
 
+        // Donor, Recipient, Hospital require admin approval
+        if (user.getRole() != User.Role.ADMIN && !user.isApproved()) {
+            throw new AuthException("Your account is pending admin approval. Please wait or contact support.");
+        }
+
         return user;
     }
 }

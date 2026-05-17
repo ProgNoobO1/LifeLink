@@ -10,7 +10,7 @@ public class UserService {
 
     public void registerUser(String fullName, String email,
                              String phone, String bloodGroup, String password,
-                             User.Role role, User.Status status) throws AuthException {
+                             User.Role role, User.Status status, boolean approved) throws AuthException {
 
         if (fullName == null || fullName.trim().isEmpty()) {
             throw new AuthException("Full name is required.");
@@ -37,7 +37,8 @@ public class UserService {
             bloodGroup != null && !bloodGroup.isEmpty() ? bloodGroup : null,
             PasswordUtil.hash(password),
             role,
-            status != null ? status : User.Status.ACTIVE
+            status != null ? status : User.Status.ACTIVE,
+            approved
         );
 
         boolean saved = userDAO.save(user);
@@ -81,6 +82,11 @@ public class UserService {
         existing.setBloodGroup(bloodGroup != null && !bloodGroup.isEmpty() ? bloodGroup : null);
         existing.setRole(role);
         existing.setStatus(status);
+
+        // Auto-approve non-admin users when activated by admin
+        if (status == User.Status.ACTIVE && role != User.Role.ADMIN) {
+            existing.setApproved(true);
+        }
 
         // Only update password if provided
         if (password != null && !password.trim().isEmpty()) {

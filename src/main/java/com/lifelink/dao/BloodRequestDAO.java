@@ -4,6 +4,7 @@ import com.lifelink.model.BloodRequest;
 import com.lifelink.utils.DBConnection;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +35,14 @@ public class BloodRequestDAO {
         Timestamp requestedAt = rs.getTimestamp("requested_at");
         req.setRequestDate(requestedAt != null ? requestedAt.toLocalDateTime().toLocalDate() : null);
         req.setStatus(dbToStatus(rs.getString("status")));
+
+        req.setUrgency(rs.getString("urgency"));
+        req.setNotes(rs.getString("notes"));
+        Timestamp updatedAt = rs.getTimestamp("updated_at");
+        req.setUpdatedAt(updatedAt != null ? updatedAt.toLocalDateTime() : null);
+        Timestamp completedAt = rs.getTimestamp("completed_at");
+        req.setCompletedAt(completedAt != null ? completedAt.toLocalDateTime() : null);
+
         return req;
     }
 
@@ -76,7 +85,7 @@ public class BloodRequestDAO {
     }
 
     public boolean updateStatus(Long id, BloodRequest.Status status) {
-        String sql = "UPDATE blood_requests SET status = ? WHERE id = ?";
+        String sql = "UPDATE blood_requests SET status = ?, updated_at = NOW() WHERE id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, statusToDb(status));

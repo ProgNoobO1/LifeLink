@@ -329,6 +329,8 @@
     .act-edit svg { fill: #d97706; }
     .act-delete { background: #fee2e2; }
     .act-delete svg { fill: var(--red); }
+    .act-approve { background: #d1fae5; }
+    .act-approve svg { fill: #059669; }
 
     .pagination-row {
       display: flex;
@@ -667,6 +669,12 @@
                   <div class="action-btns">
                     <button class="act-btn act-view" title="View" onclick="openViewUserModal(${user.id})"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
                     <button class="act-btn act-edit" title="Edit" onclick="openEditUserModal(${user.id})"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <c:if test="${user.status == 'INACTIVE'}">
+                      <form action="${pageContext.request.contextPath}/admin/users/approve" method="post" style="display:inline;" onsubmit="return confirm('Approve this user?');">
+                        <input type="hidden" name="id" value="${user.id}" />
+                        <button type="submit" class="act-btn act-approve" title="Approve"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></button>
+                      </form>
+                    </c:if>
                     <button class="act-btn act-delete" title="Delete" onclick="openDeleteConfirmModal(${user.id})"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                   </div>
                 </td>

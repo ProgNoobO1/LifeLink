@@ -603,6 +603,9 @@
     <% if ("true".equals(request.getParameter("registered"))) { %>
         showToast('Registration successful! Please log in.', 'success');
     <% } %>
+    <% if ("true".equals(request.getParameter("pending"))) { %>
+        showToast('Registration successful! Your account is pending admin approval.', 'success');
+    <% } %>
 </script>
 
 </body>
