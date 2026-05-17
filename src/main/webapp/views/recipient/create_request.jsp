@@ -85,9 +85,6 @@
         .page-title h1 { font-size: 1.25rem; line-height: 1.2; font-weight: 800; color: #1f2937; }
         .page-title p { margin-top: .35rem; font-size: .78rem; color: #98a2b3; }
         .topbar-right { display: flex; align-items: center; gap: .95rem; }
-        .bell { position: relative; width: 40px; height: 40px; border: 1px solid #e5e7eb; border-radius: 12px; background: #fff; color: #6b7280; display: grid; place-items: center; }
-        .bell svg { width: 19px; height: 19px; fill: currentColor; }
-        .bell-count { position: absolute; top: -5px; right: -4px; min-width: 16px; height: 16px; border-radius: 999px; background: #c91c20; color: #fff; font-size: .62rem; font-weight: 800; line-height: 16px; text-align: center; }
         .top-user { display: flex; align-items: center; gap: .7rem; min-width: 0; }
         .avatar { width: 38px; height: 38px; border-radius: 999px; background: linear-gradient(135deg, #b91c1c, #ef4444); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: .78rem; border: 2px solid #f4d0d0; }
         .top-user strong { display: block; font-size: .84rem; color: #344054; }
@@ -195,10 +192,7 @@
             </div>
         </div>
         <div class="topbar-right">
-            <button class="bell" type="button" title="Notifications">
-                <svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6v-5a7 7 0 0 0-5-6.71V3a2 2 0 1 0-4 0v1.29A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z"/></svg>
-                <span class="bell-count">1</span>
-            </button>
+            <jsp:include page="/includes/recipient_notifications.jsp" />
             <div class="top-user">
                 <div class="avatar"><%= esc(initials) %></div>
                 <div>

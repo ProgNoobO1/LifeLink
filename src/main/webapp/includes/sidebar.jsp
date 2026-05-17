@@ -5,12 +5,15 @@
   Time: 18:21
   To change this template use File | Settings | File Templates.
 --%>
-<%@ page import="com.lifelink.dao.BloodRequestDAO" %>
-<%@ page import="com.lifelink.model.BloodRequest" %>
+<%@ page import="com.lifelink.dao.UserDAO" %>
+<%@ page import="com.lifelink.model.User" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-    BloodRequestDAO sidebarRequestDAO = new BloodRequestDAO();
-    long pendingRequestCount = sidebarRequestDAO.countByStatus(BloodRequest.Status.PENDING);
+    UserDAO sidebarUserDAO = new UserDAO();
+    long pendingRequestCount = sidebarUserDAO.findAll(0, 10000).stream()
+        .filter(u -> u.getRole() != User.Role.ADMIN)
+        .filter(u -> u.getStatus() == User.Status.INACTIVE || !u.isApproved())
+        .count();
 %>
 <style>
         .nav-item.active::after {

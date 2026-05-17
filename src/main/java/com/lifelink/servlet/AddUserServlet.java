@@ -3,6 +3,7 @@ package com.lifelink.servlet;
 import com.lifelink.model.Notification;
 import com.lifelink.model.User;
 import com.lifelink.service.AuthException;
+import com.lifelink.service.EmailService;
 import com.lifelink.service.NotificationService;
 import com.lifelink.service.UserService;
 import jakarta.servlet.ServletException;
@@ -46,7 +47,7 @@ public class AddUserServlet extends HttpServlet {
             User.Status status = User.Status.valueOf(statusStr);
 
             userService.registerUser(fullName, email, phone,
-                    bloodGroup, password, role, status);
+                    bloodGroup, password, role, status, true);
 
             Notification notification = new Notification(
                 "NEW_USER",
@@ -55,6 +56,15 @@ public class AddUserServlet extends HttpServlet {
                 req.getContextPath() + "/admin/users"
             );
             NotificationService.getInstance().broadcast(notification);
+
+            // Send welcome email to new user
+            String welcomeSubject = "Welcome to LifeLink!";
+            String welcomeBody = EmailService.buildHtmlBody(
+                "Welcome to LifeLink",
+                "Hi " + fullName + ",<br><br>An account has been created for you on LifeLink as a " + role.name().toLowerCase() + ".<br>Please login with your registered email and password.",
+                null, null
+            );
+            EmailService.sendEmail(email, welcomeSubject, welcomeBody);
 
             session.setAttribute("successMessage", "User created successfully!");
             resp.sendRedirect(req.getContextPath() + "/admin/users");

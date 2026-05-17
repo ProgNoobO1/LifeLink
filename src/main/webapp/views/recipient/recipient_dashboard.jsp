@@ -38,10 +38,6 @@
         .topbar-left h1 { font-size: 1.25rem; font-weight: 700; color: #111827; }
         .topbar-left p { font-size: .82rem; color: #6b7280; margin-top: .15rem; }
         .topbar-right { display: flex; align-items: center; gap: 1rem; }
-        .notif-btn { position: relative; background: none; border: none; cursor: pointer; padding: .45rem; border-radius: 8px; color: #6b7280; transition: background .15s; }
-        .notif-btn:hover { background: #f3f4f6; }
-        .notif-btn svg { width: 22px; height: 22px; fill: currentColor; }
-        .notif-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; background: #16a34a; border-radius: 50%; border: 2px solid #fff; }
         .topbar-user { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
         .topbar-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #b91c1c, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .78rem; font-weight: 700; }
         .topbar-uname { font-size: .85rem; font-weight: 600; color: #111827; }
@@ -191,10 +187,7 @@
             </div>
         </div>
         <div class="topbar-right">
-            <button class="notif-btn" title="Notifications">
-                <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/></svg>
-                <span class="notif-dot"></span>
-            </button>
+            <jsp:include page="/includes/recipient_notifications.jsp" />
             <div class="topbar-user">
                 <div class="topbar-avatar"><%= initials %></div>
                 <div>

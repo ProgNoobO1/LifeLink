@@ -1,5 +1,7 @@
 package com.lifelink.model;
 
+import java.time.LocalDateTime;
+
 public class User {
 
     private Long id;
@@ -10,6 +12,9 @@ public class User {
     private String passwordHash;
     private Role role;
     private Status status = Status.ACTIVE;
+    private boolean approved = false;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public enum Role {
         ADMIN, DONOR, RECIPIENT, HOSPITAL
@@ -30,6 +35,12 @@ public class User {
         this.passwordHash = passwordHash;
         this.role = role;
         this.status = status;
+    }
+
+    public User(String fullName, String email, String phone,
+                String bloodGroup, String passwordHash, Role role, Status status, boolean approved) {
+        this(fullName, email, phone, bloodGroup, passwordHash, role, status);
+        this.approved = approved;
     }
 
     // Getters and Setters
@@ -56,6 +67,15 @@ public class User {
 
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
+
+    public boolean isApproved() { return approved; }
+    public void setApproved(boolean approved) { this.approved = approved; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
     public String getInitials() {
         if (fullName == null || fullName.isEmpty()) return "??";

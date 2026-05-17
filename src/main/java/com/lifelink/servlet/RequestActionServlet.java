@@ -4,6 +4,7 @@ import com.lifelink.dao.BloodRequestDAO;
 import com.lifelink.model.BloodRequest;
 import com.lifelink.model.Notification;
 import com.lifelink.model.User;
+import com.lifelink.service.EmailService;
 import com.lifelink.service.NotificationService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
@@ -112,6 +113,15 @@ public class RequestActionServlet extends HttpServlet {
                 req.getContextPath() + "/admin/requests"
             );
             NotificationService.getInstance().broadcast(notification);
+
+            // Send email to requester
+            String emailSubject = notifTitle + " - LifeLink";
+            String emailBody = EmailService.buildHtmlBody(
+                notifTitle,
+                "Hi " + request.getRequesterName() + ",<br><br>Your blood request for <strong>" + request.getBloodGroup() + "</strong> (" + request.getUnits() + " unit" + (request.getUnits() > 1 ? "s" : "") + ") has been " + ("approve".equalsIgnoreCase(action) ? "approved" : "rejected") + ".<br><br>If you have any questions, please contact our support team.",
+                null, null
+            );
+            EmailService.sendEmail(request.getRequesterEmail(), emailSubject, emailBody);
         }
 
         resp.sendRedirect(req.getContextPath() + "/admin/requests?" + (success ? "success=" : "error=") + java.net.URLEncoder.encode(message, "UTF-8"));
