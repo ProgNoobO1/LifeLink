@@ -34,16 +34,15 @@ public class DonorServlet extends HttpServlet {
         String path = request.getPathInfo();
         if (path == null) path = "/dashboard";
         
-        // Authenticated user check
+        // Authenticated user check - adapted for Donor-only branch
         HttpSession session = request.getSession();
-        com.lifelink.models.User user = (com.lifelink.models.User) session.getAttribute("user");
-        
-        if (user == null || !"Donor".equals(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
+        Integer donorIdObj = (Integer) session.getAttribute("donorId");
+        if (donorIdObj == null) {
+            donorIdObj = 1; // Default fallback for standalone / no-auth mode
+            session.setAttribute("donorId", donorIdObj);
         }
         
-        int donorId = user.getId();
+        int donorId = donorIdObj;
         donorDAO.seedDummyHospitalRequest(donorId);
         donorDAO.seedDummyRecipientRequest(donorId);
 
@@ -95,14 +94,13 @@ public class DonorServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
         HttpSession session = request.getSession();
-        com.lifelink.models.User user = (com.lifelink.models.User) session.getAttribute("user");
-        
-        if (user == null || !"Donor".equals(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
+        Integer donorIdObj = (Integer) session.getAttribute("donorId");
+        if (donorIdObj == null) {
+            donorIdObj = 1;
+            session.setAttribute("donorId", donorIdObj);
         }
         
-        int donorId = user.getId();
+        int donorId = donorIdObj;
 
         switch (path) {
             case "/profile":
@@ -268,12 +266,14 @@ public class DonorServlet extends HttpServlet {
 
     private void updateRequestStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
-        com.lifelink.models.User user = (session != null) ? (com.lifelink.models.User) session.getAttribute("user") : null;
-        if (user == null || !"Donor".equals(user.getRole())) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
+        Integer donorIdObj = (session != null) ? (Integer) session.getAttribute("donorId") : null;
+        if (donorIdObj == null) {
+            donorIdObj = 1;
+            if (session != null) {
+                session.setAttribute("donorId", donorIdObj);
+            }
         }
-        int donorId = user.getId();
+        int donorId = donorIdObj;
         int requestId = Integer.parseInt(request.getParameter("requestId"));
         String status = request.getParameter("status"); // 'Accepted' or 'Rejected'
         boolean success = donorDAO.updateRequestStatus(requestId, donorId, status);
