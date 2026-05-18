@@ -246,6 +246,14 @@
             background: white;
         }
 
+        .input-wrapper input:disabled,
+        .input-wrapper select:disabled {
+            background: #e5e7eb;
+            color: var(--text-light);
+            cursor: not-allowed;
+            opacity: .6;
+        }
+
         .input-wrapper input::placeholder { color: var(--text-light); }
         .input-wrapper select option[value=""] { color: var(--text-light); }
 
@@ -708,12 +716,24 @@
     /* ── Role selector ── */
     const roleBtns = document.querySelectorAll('.role-btn');
     const roleInput = document.getElementById('role');
+    const fullNameInput = document.getElementById('fullName');
+    const bloodGroupSelect = document.getElementById('bloodGroup');
+
+    function setHospitalMode(isHospital) {
+        fullNameInput.disabled = isHospital;
+        bloodGroupSelect.disabled = isHospital;
+        if (isHospital) {
+            fullNameInput.value = '';
+            bloodGroupSelect.value = '';
+        }
+    }
 
     roleBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             roleBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             roleInput.value = btn.dataset.role;
+            setHospitalMode(btn.dataset.role === 'hospital');
         });
     });
 
@@ -759,12 +779,13 @@
 
     /* ── Client-side validation ── */
     document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const role      = document.getElementById('role').value;
         const fullName  = document.getElementById('fullName').value.trim();
         const email     = document.getElementById('email').value.trim();
         const password  = document.getElementById('password').value;
         const confirm   = document.getElementById('confirmPassword').value;
 
-        if (!fullName || !email || !password || !confirm) {
+        if ((!fullName && role !== 'hospital') || !email || !password || !confirm) {
             e.preventDefault();
             showToast('Please fill in all required fields.', 'error');
             return;
