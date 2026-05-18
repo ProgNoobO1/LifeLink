@@ -82,7 +82,16 @@
                                         <td style="width: 50px;"><div class="stat-icon icon-green" style="width:32px; height:32px; font-size: 0.9rem;"><i class="fas fa-check"></i></div></td>
                                         <td>
                                             <span style="font-weight: 600; font-size: 0.85rem;">Whole Blood Donation</span><br>
-                                            <span style="font-size: 0.75rem; color: var(--text-muted);"><fmt:formatDate value="${item.requestDate}" pattern="MMM dd, yyyy" /> • ${item.hospitalName}</span>
+                                            <span style="font-size: 0.75rem; color: var(--text-muted);"><fmt:formatDate value="${item.requestDate}" pattern="MMM dd, yyyy" /> • 
+                                                <c:choose>
+                                                    <c:when test="${item.requesterRole == 'hospital'}">
+                                                        Hospital: ${item.hospitalName}
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        Patient: ${item.patientName}
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </span>
                                         </td>
                                         <td style="text-align: right;"><span class="status-pill status-active">Completed</span></td>
                                     </tr>
@@ -108,18 +117,36 @@
                     <c:forEach var="req" items="${requests}">
                         <div class="request-card">
                             <div class="request-header">
-                                <div class="stat-icon icon-red" style="width: 48px; height: 48px; font-size: 1.25rem;"><i class="fas fa-hospital"></i></div>
-                                <div>
-                                    <h4 style="font-size: 0.95rem;">${req.hospitalName}</h4>
-                                    <p style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-map-marker-alt"></i> ${req.location}</p>
-                                </div>
-                                <span class="badge-urgency urgency-high">High Urgency</span>
+                                <c:choose>
+                                    <c:when test="${req.requesterRole == 'hospital'}">
+                                        <div class="stat-icon icon-red" style="width: 48px; height: 48px; font-size: 1.25rem;"><i class="fas fa-hospital"></i></div>
+                                        <div>
+                                            <h4 style="font-size: 0.95rem;">${req.hospitalName}</h4>
+                                            <p style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-map-marker-alt"></i> ${req.location}</p>
+                                        </div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="stat-icon icon-red" style="width: 48px; height: 48px; font-size: 1.25rem;"><i class="fas fa-user-injured"></i></div>
+                                        <div>
+                                            <h4 style="font-size: 0.95rem;">Patient: ${req.patientName}</h4>
+                                            <p style="font-size: 0.75rem; color: var(--text-muted);"><i class="fas fa-birthday-cake"></i> Age: ${req.patientAge > 0 ? req.patientAge : 'N/A'}</p>
+                                        </div>
+                                    </c:otherwise>
+                                </c:choose>
+                                <span class="badge-urgency urgency-high">${req.urgency}</span>
                             </div>
                             <div class="request-info-row">
                                 <span><i class="fas fa-tint"></i> ${req.bloodGroup}</span>
                                 <span><i class="far fa-calendar-alt"></i> <fmt:formatDate value="${req.requestDate}" pattern="MMM dd, yyyy" /></span>
                             </div>
-                            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Patient requires ${req.bloodGroup} blood urgently at ${req.location}. Your immediate donation makes a massive impact.</p>
+                            <c:choose>
+                                <c:when test="${req.requesterRole == 'hospital'}">
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Hospital requests ${req.bloodGroup} blood urgently at ${req.location}. Your response will make a difference.</p>
+                                </c:when>
+                                <c:otherwise>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;">Patient requires ${req.bloodGroup} blood urgently at ${req.location}. Your immediate donation makes a massive impact.</p>
+                                </c:otherwise>
+                            </c:choose>
                             <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
                                 <a href="${pageContext.request.contextPath}/donor/requestDetails?requestId=${req.id}" class="btn-premium btn-primary" style="flex: 1;">View Details</a>
                                 <form action="${pageContext.request.contextPath}/donor/updateStatus" method="POST" style="flex: 0;">

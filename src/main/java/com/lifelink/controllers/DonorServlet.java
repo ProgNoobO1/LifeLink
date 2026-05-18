@@ -44,6 +44,8 @@ public class DonorServlet extends HttpServlet {
         }
         
         int donorId = user.getId();
+        donorDAO.seedDummyHospitalRequest(donorId);
+        donorDAO.seedDummyRecipientRequest(donorId);
 
         switch (path) {
             case "/dashboard":
@@ -80,8 +82,10 @@ public class DonorServlet extends HttpServlet {
         }
         
         Donor donor = donorDAO.getDonorById(donorId);
+        List<Notification> notifications = getNotifications(donor, requests);
         request.setAttribute("donor", donor);
         request.setAttribute("req", req);
+        request.setAttribute("notifications", notifications);
         request.setAttribute("pageTitle", "Request Details");
         request.setAttribute("pageSubtitle", "Review the full details before taking action.");
         request.getRequestDispatcher("/views/donor_request_details.jsp").forward(request, response);
@@ -120,9 +124,15 @@ public class DonorServlet extends HttpServlet {
         
         if (requests != null) {
             for (BloodRequest req : requests) {
+                String message;
+                if ("hospital".equals(req.getRequesterRole())) {
+                    message = "New " + req.getBloodGroup() + " request from Hospital: " + req.getHospitalName();
+                } else {
+                    message = "New " + req.getBloodGroup() + " request for Patient: " + req.getPatientName() + " (Age: " + (req.getPatientAge() > 0 ? req.getPatientAge() : "N/A") + ")";
+                }
                 notifications.add(new Notification(
                     "Request",
-                    "New " + req.getBloodGroup() + " request from " + req.getHospitalName(),
+                    message,
                     "fas fa-tint",
                     "Just now"
                 ));
@@ -257,9 +267,16 @@ public class DonorServlet extends HttpServlet {
     }
 
     private void updateRequestStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession();
+        com.lifelink.models.User user = (session != null) ? (com.lifelink.models.User) session.getAttribute("user") : null;
+        if (user == null || !"Donor".equals(user.getRole())) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        int donorId = user.getId();
         int requestId = Integer.parseInt(request.getParameter("requestId"));
         String status = request.getParameter("status"); // 'Accepted' or 'Rejected'
-        boolean success = donorDAO.updateRequestStatus(requestId, status);
+        boolean success = donorDAO.updateRequestStatus(requestId, donorId, status);
         
         if (success && status.equals("Accepted")) {
             response.sendRedirect(request.getContextPath() + "/donor/dashboard?success=accepted");

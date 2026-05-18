@@ -64,7 +64,6 @@
                                 <th>Blood Group</th>
                                 <th>Units</th>
                                 <th>Status</th>
-                                <th>Certificate</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -89,12 +88,11 @@
                                     <td><span style="font-weight: 700; color: var(--active-red);">${item.bloodGroup}</span></td>
                                     <td><div style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-flask" style="color: #3B82F6;"></i> 1 Unit</div></td>
                                     <td><span class="status-pill status-active"><i class="fas fa-check"></i> Completed</span></td>
-                                    <td><button class="btn-premium btn-secondary" style="font-size: 0.75rem; color: var(--active-red); border-color: var(--active-red);"><i class="fas fa-download"></i> Download</button></td>
                                 </tr>
                             </c:forEach>
                             <c:if test="${empty history}">
                                 <tr>
-                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;">No donation records found.</td>
+                                    <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;">No donation records found.</td>
                                 </tr>
                             </c:if>
                         </tbody>
@@ -120,7 +118,7 @@
             const noMatchRow = document.createElement("tr");
             noMatchRow.className = "no-records-row";
             noMatchRow.style.display = "none";
-            noMatchRow.innerHTML = `<td colspan="6" style="text-align: center; color: var(--text-muted); padding: 2rem;"><i class="fas fa-search" style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem; color: #ccc;"></i>No records match the selected date range.</td>`;
+            noMatchRow.innerHTML = `<td colspan="5" style="text-align: center; color: var(--text-muted); padding: 2rem;"><i class="fas fa-search" style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem; color: #ccc;"></i>No records match the selected date range.</td>`;
             tbody.appendChild(noMatchRow);
 
             // Toggle filter panel visibility

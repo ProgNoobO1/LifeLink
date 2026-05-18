@@ -19,6 +19,8 @@ public class BloodRequest {
     private String patientName;
     private int unitsNeeded;
     private String urgency;
+    private String requesterRole;
+    private int patientAge;
 
     public BloodRequest() {}
 
@@ -57,5 +59,11 @@ public class BloodRequest {
 
     public String getUrgency() { return urgency; }
     public void setUrgency(String urgency) { this.urgency = urgency; }
+
+    public String getRequesterRole() { return requesterRole; }
+    public void setRequesterRole(String requesterRole) { this.requesterRole = requesterRole; }
+
+    public int getPatientAge() { return patientAge; }
+    public void setPatientAge(int patientAge) { this.patientAge = patientAge; }
 }
 

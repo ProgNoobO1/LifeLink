@@ -169,6 +169,12 @@
         <p class="subtitle">Enter your credentials to access your account</p>
 
         <div class="error-message">${error}</div>
+        
+        <% if ("registered".equals(request.getParameter("success"))) { %>
+            <div style="background: rgba(39, 174, 96, 0.1); color: #27ae60; padding: 12px; border-radius: 12px; font-size: 14px; margin-bottom: 24px; font-weight: 600;">
+                Registration successful! Please sign in.
+            </div>
+        <% } %>
 
         <form action="${pageContext.request.contextPath}/login" method="post">
             <div class="form-group">
@@ -183,7 +189,7 @@
         </form>
 
         <div class="footer-links">
-            Don't have an account? <a href="#">Create Account</a>
+            Don't have an account? <a href="${pageContext.request.contextPath}/register">Create Account</a>
         </div>
     </div>
 </body>

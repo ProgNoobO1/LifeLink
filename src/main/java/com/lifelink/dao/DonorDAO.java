@@ -28,6 +28,21 @@ public class DonorDAO {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
+                    // Self-healing check: if the donor row doesn't exist in donors table, insert a default one!
+                    rs.getInt("blood_group_id");
+                    if (rs.wasNull()) {
+                        String sqlInsertDefault = "INSERT INTO donors (user_id, blood_group_id, address, is_available) VALUES (?, 1, 'Not Set', 1)";
+                        try (Connection connSelfHeal = DBConnection.getConnection();
+                             PreparedStatement pstmtHeal = connSelfHeal.prepareStatement(sqlInsertDefault)) {
+                            pstmtHeal.setInt(1, id);
+                            pstmtHeal.executeUpdate();
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                        // Re-query now that the row exists!
+                        return getDonorById(id);
+                    }
+
                     Donor donor = new Donor();
                     donor.setId(rs.getInt("user_id"));
                     donor.setName(rs.getString("full_name"));
@@ -73,7 +88,7 @@ public class DonorDAO {
     }
 
     public boolean updateProfile(Donor donor) {
-        String sqlUser = "UPDATE users SET full_name = ? WHERE id = ?";
+        String sqlUser = "UPDATE users SET full_name = ?, phone = ? WHERE id = ?";
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
@@ -82,7 +97,8 @@ public class DonorDAO {
             // 1. Update users table
             try (PreparedStatement pstmt1 = conn.prepareStatement(sqlUser)) {
                 pstmt1.setString(1, donor.getName());
-                pstmt1.setInt(2, donor.getId());
+                pstmt1.setString(2, donor.getPhone());
+                pstmt1.setInt(3, donor.getId());
                 pstmt1.executeUpdate();
             }
             
@@ -207,16 +223,33 @@ public class DonorDAO {
 
     public List<BloodRequest> getRequestsForDonor(int donorId) {
         List<BloodRequest> requests = new ArrayList<>();
-        // Fetch requests that are directly targeted to this donor_id OR general requests matching the donor's blood group
-        String sql = "SELECT br.id as request_id, br.requester_id, br.units_needed, br.urgency, br.status, br.requested_at as request_date, " +
-                     "u.full_name as patient_name, bg.name as blood_group, br.notes " +
-                     "FROM blood_requests br " +
-                     "JOIN users u ON br.requester_id = u.id " +
-                     "JOIN blood_groups bg ON br.blood_group_id = bg.id " +
-                     "JOIN donors d ON d.blood_group_id = br.blood_group_id " +
-                     "WHERE (br.donor_id = ? OR (br.donor_id IS NULL AND d.user_id = ?)) " +
-                     "AND br.status = 'pending' " +
-                     "ORDER BY br.requested_at DESC";
+        // UNION of two branches:
+        //   Branch 1: requests explicitly targeted at this donor (donor_id = ?)
+        //   Branch 2: open requests (donor_id IS NULL) matching the donor's blood group
+        String sql =
+            // Branch 1 – directly targeted requests (no donors join needed)
+            "SELECT br.id as request_id, br.requester_id, br.units_needed, br.urgency, br.status, br.requested_at as request_date, br.notes, " +
+            "bg.name as blood_group, u.role as requester_role, u.full_name as user_full_name, " +
+            "r.date_of_birth as recipient_dob, h.hospital_name as hospital_name, h.address as hospital_address " +
+            "FROM blood_requests br " +
+            "JOIN blood_groups bg ON br.blood_group_id = bg.id " +
+            "JOIN users u ON br.requester_id = u.id " +
+            "LEFT JOIN recipients r ON u.id = r.user_id " +
+            "LEFT JOIN hospitals h ON u.id = h.user_id " +
+            "WHERE br.donor_id = ? AND br.status = 'pending' " +
+            "UNION " +
+            // Branch 2 – open (untargeted) requests matching this donor's blood group
+            "SELECT br.id as request_id, br.requester_id, br.units_needed, br.urgency, br.status, br.requested_at as request_date, br.notes, " +
+            "bg.name as blood_group, u.role as requester_role, u.full_name as user_full_name, " +
+            "r.date_of_birth as recipient_dob, h.hospital_name as hospital_name, h.address as hospital_address " +
+            "FROM blood_requests br " +
+            "JOIN blood_groups bg ON br.blood_group_id = bg.id " +
+            "JOIN users u ON br.requester_id = u.id " +
+            "LEFT JOIN recipients r ON u.id = r.user_id " +
+            "LEFT JOIN hospitals h ON u.id = h.user_id " +
+            "JOIN donors d ON d.blood_group_id = br.blood_group_id AND d.user_id = ? " +
+            "WHERE br.donor_id IS NULL AND br.status = 'pending' " +
+            "ORDER BY request_date DESC";
         
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -230,31 +263,23 @@ public class DonorDAO {
                     br.setDonorId(donorId);
                     br.setRequesterId(rs.getInt("requester_id"));
                     br.setBloodGroup(rs.getString("blood_group"));
-                    
-                    String notes = rs.getString("notes");
-                    String patientName = "Patient";
-                    String hospitalName = "Hospital";
-                    if (notes != null && notes.contains("|")) {
-                        String[] parts = notes.split("\\|");
-                        for (String part : parts) {
-                            if (part.contains("Patient:")) {
-                                patientName = part.replace("Patient:", "").trim();
-                            }
-                            if (part.contains("Location/Hospital:")) {
-                                hospitalName = part.replace("Location/Hospital:", "").trim();
-                            }
-                        }
-                    } else if (notes != null) {
-                        hospitalName = notes;
-                    }
-                    
-                    br.setPatientName(patientName);
-                    br.setHospitalName(hospitalName);
-                    br.setLocation(hospitalName);
                     br.setStatus(rs.getString("status"));
                     br.setRequestDate(rs.getTimestamp("request_date"));
                     br.setUnitsNeeded(rs.getInt("units_needed"));
                     br.setUrgency(rs.getString("urgency"));
+                    
+                    String role = rs.getString("requester_role");
+                    br.setRequesterRole(role != null ? role.toLowerCase() : "recipient");
+                    
+                    String notes = rs.getString("notes");
+                    parseNotesAndProfile(
+                        br, 
+                        notes, 
+                        rs.getString("user_full_name"), 
+                        rs.getString("hospital_name"), 
+                        rs.getString("hospital_address"), 
+                        rs.getDate("recipient_dob")
+                    );
                     requests.add(br);
                 }
             }
@@ -264,65 +289,136 @@ public class DonorDAO {
         return requests;
     }
 
-    public boolean updateRequestStatus(int requestId, String status) {
+    public boolean updateRequestStatus(int requestId, int donorId, String status) {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Update Request Status in blood_requests
-            String sqlRequest = "UPDATE blood_requests SET status = ?, completed_at = CASE WHEN ? = 'Accepted' THEN CURRENT_TIMESTAMP ELSE completed_at END WHERE id = ?";
-            String dbStatus = status.equals("Accepted") ? "completed" : "rejected";
-            try (PreparedStatement pstmt = conn.prepareStatement(sqlRequest)) {
-                pstmt.setString(1, dbStatus);
-                pstmt.setString(2, status);
-                pstmt.setInt(3, requestId);
-                pstmt.executeUpdate();
+            // 1. Get request details
+            int bloodGroupId = 0;
+            int unitsNeeded = 1;
+            int requesterId = 0;
+            String queryRequest = "SELECT requester_id, blood_group_id, units_needed FROM blood_requests WHERE id = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(queryRequest)) {
+                pstmt.setInt(1, requestId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        requesterId = rs.getInt("requester_id");
+                        bloodGroupId = rs.getInt("blood_group_id");
+                        unitsNeeded = rs.getInt("units_needed");
+                    }
+                }
             }
 
-            // 2. If Accepted, update Donor status and insert to donation history
+            // 2. Fetch donor's full name
+            String donorName = "Donor";
+            String queryDonorName = "SELECT full_name FROM users WHERE id = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(queryDonorName)) {
+                pstmt.setInt(1, donorId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        donorName = rs.getString("full_name");
+                    }
+                }
+            }
+
             if (status.equals("Accepted")) {
-                int targetDonorId = 0;
-                int bloodGroupId = 0;
-                int unitsNeeded = 1;
-                String queryRequest = "SELECT donor_id, blood_group_id, units_needed FROM blood_requests WHERE id = ?";
-                try (PreparedStatement pstmt = conn.prepareStatement(queryRequest)) {
-                    pstmt.setInt(1, requestId);
-                    try (ResultSet rs = pstmt.executeQuery()) {
-                        if (rs.next()) {
-                            targetDonorId = rs.getInt("donor_id");
-                            bloodGroupId = rs.getInt("blood_group_id");
-                            unitsNeeded = rs.getInt("units_needed");
+                // 3. Update blood_requests
+                String sqlRequest = "UPDATE blood_requests SET status = 'completed', donor_id = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlRequest)) {
+                    pstmt.setInt(1, donorId);
+                    pstmt.setInt(2, requestId);
+                    pstmt.executeUpdate();
+                }
+
+                // 4. Update donors table to make unavailable and set last donation date
+                String sqlDonor = "UPDATE donors SET is_available = 0, last_donated_at = CURRENT_DATE WHERE user_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlDonor)) {
+                    pstmt.setInt(1, donorId);
+                    pstmt.executeUpdate();
+                }
+
+                // 5. Insert into donation_history
+                String sqlHistory = "INSERT INTO donation_history (donor_id, request_id, blood_group_id, units_donated, donated_at, verified) VALUES (?, ?, ?, ?, CURRENT_DATE, 1)";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlHistory)) {
+                    pstmt.setInt(1, donorId);
+                    pstmt.setInt(2, requestId);
+                    pstmt.setInt(3, bloodGroupId);
+                    pstmt.setInt(4, unitsNeeded);
+                    pstmt.executeUpdate();
+                }
+
+                // 5b. Auto-reject any other pending requests targeted directly to this donor
+                String sqlGetOtherRequests = "SELECT id, requester_id, units_needed FROM blood_requests WHERE donor_id = ? AND status = 'pending' AND id != ?";
+                try (PreparedStatement pstmtGetOther = conn.prepareStatement(sqlGetOtherRequests)) {
+                    pstmtGetOther.setInt(1, donorId);
+                    pstmtGetOther.setInt(2, requestId);
+                    try (ResultSet rsOther = pstmtGetOther.executeQuery()) {
+                        while (rsOther.next()) {
+                            int otherReqId = rsOther.getInt("id");
+                            int otherRequesterId = rsOther.getInt("requester_id");
+                            int otherUnits = rsOther.getInt("units_needed");
+
+                            // Reject this other request
+                            String sqlRejectOther = "UPDATE blood_requests SET status = 'rejected' WHERE id = ?";
+                            try (PreparedStatement pstmtReject = conn.prepareStatement(sqlRejectOther)) {
+                                pstmtReject.setInt(1, otherReqId);
+                                pstmtReject.executeUpdate();
+                            }
+
+                            // Log in request_responses for the rejected request
+                            String sqlResponseOther = "INSERT INTO request_responses (request_id, responder_id, responder_type, response, units_provided, notes) " +
+                                                      "VALUES (?, ?, 'donor', 'rejected', 0, ?)";
+                            try (PreparedStatement pstmtResp = conn.prepareStatement(sqlResponseOther)) {
+                                pstmtResp.setInt(1, otherReqId);
+                                pstmtResp.setInt(2, donorId);
+                                pstmtResp.setString(3, "System auto-declined: donor accepted another request and is now in 90-day cooldown.");
+                                pstmtResp.executeUpdate();
+                            }
+
+                            // Queue email notification targeting the other requester
+                            if (otherRequesterId > 0) {
+                                String sqlEmailOther = "INSERT INTO email_notifications (user_id, subject, body, status) VALUES (?, ?, ?, 'queued')";
+                                try (PreparedStatement pstmtEmail = conn.prepareStatement(sqlEmailOther)) {
+                                    pstmtEmail.setInt(1, otherRequesterId);
+                                    pstmtEmail.setString(2, "LifeLink - Blood Request Declined");
+                                    pstmtEmail.setString(3, "Dear User,\n\nYour blood request (ID: " + otherReqId + ") has been declined because donor " + donorName + " has committed to another donation and entered the safety cooldown period.\n\nPlease search for other available donors.\n\nThank you,\nLifeLink Team");
+                                    pstmtEmail.executeUpdate();
+                                }
+                            }
                         }
                     }
                 }
+            } else {
+                // Rejected request: update status to 'rejected'
+                String sqlRequest = "UPDATE blood_requests SET status = 'rejected' WHERE id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlRequest)) {
+                    pstmt.setInt(1, requestId);
+                    pstmt.executeUpdate();
+                }
+            }
 
-                if (targetDonorId > 0) {
-                    // Update the target donor's status
-                    String sqlDirect = "UPDATE donors SET is_available = 0, last_donated_at = CURRENT_DATE WHERE user_id = ?";
-                    try (PreparedStatement pstmt = conn.prepareStatement(sqlDirect)) {
-                        pstmt.setInt(1, targetDonorId);
-                        pstmt.executeUpdate();
-                    }
+            // 6. Log in request_responses
+            String sqlResponse = "INSERT INTO request_responses (request_id, responder_id, responder_type, response, units_provided, notes) " +
+                                 "VALUES (?, ?, 'donor', ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlResponse)) {
+                pstmt.setInt(1, requestId);
+                pstmt.setInt(2, donorId);
+                pstmt.setString(3, status.toLowerCase()); // 'accepted' or 'rejected'
+                pstmt.setInt(4, status.equals("Accepted") ? unitsNeeded : 0);
+                pstmt.setString(5, "Blood request " + status.toLowerCase() + " by donor: " + donorName);
+                pstmt.executeUpdate();
+            }
 
-                    // Insert record into donation_history
-                    String sqlHistory = "INSERT INTO donation_history (donor_id, request_id, blood_group_id, units_donated, donated_at, verified) " +
-                                        "VALUES (?, ?, ?, ?, CURRENT_DATE, 1)";
-                    try (PreparedStatement pstmt = conn.prepareStatement(sqlHistory)) {
-                        pstmt.setInt(1, targetDonorId);
-                        pstmt.setInt(2, requestId);
-                        pstmt.setInt(3, bloodGroupId);
-                        pstmt.setInt(4, unitsNeeded);
-                        pstmt.executeUpdate();
-                    }
-                } else {
-                    // Fallback to select donor by joining on blood_group (just in case)
-                    String sqlDirect = "UPDATE donors SET is_available = 0, last_donated_at = CURRENT_DATE " +
-                                       "WHERE user_id = (SELECT d.user_id FROM (SELECT d.user_id FROM donors d JOIN blood_requests br ON d.blood_group_id = br.blood_group_id WHERE br.id = ? LIMIT 1) as t)";
-                    try (PreparedStatement pstmt = conn.prepareStatement(sqlDirect)) {
-                        pstmt.setInt(1, requestId);
-                        pstmt.executeUpdate();
-                    }
+            // 7. Queue email notification targeting requesterId
+            if (requesterId > 0) {
+                String sqlEmail = "INSERT INTO email_notifications (user_id, subject, body, status) VALUES (?, ?, ?, 'queued')";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlEmail)) {
+                    pstmt.setInt(1, requesterId);
+                    pstmt.setString(2, "LifeLink - Blood Request " + status);
+                    pstmt.setString(3, "Dear User,\n\nYour blood request (ID: " + requestId + ") has been " + status.toLowerCase() + " by donor " + donorName + ".\n\nThank you,\nLifeLink Team");
+                    pstmt.executeUpdate();
                 }
             }
 
@@ -343,13 +439,16 @@ public class DonorDAO {
 
     public List<BloodRequest> getDonationHistory(int donorId) {
         List<BloodRequest> history = new ArrayList<>();
-        String sql = "SELECT br.id as request_id, br.requester_id, br.units_needed, br.urgency, br.status, br.requested_at as request_date, " +
-                     "u.full_name as patient_name, bg.name as blood_group, br.notes " +
+        String sql = "SELECT br.id as request_id, br.requester_id, br.units_needed, br.urgency, br.status, br.requested_at as request_date, br.notes, " +
+                     "bg.name as blood_group, u.role as requester_role, u.full_name as user_full_name, " +
+                     "r.date_of_birth as recipient_dob, h.hospital_name as hospital_name, h.address as hospital_address " +
                      "FROM blood_requests br " +
-                     "JOIN users u ON br.requester_id = u.id " +
                      "JOIN blood_groups bg ON br.blood_group_id = bg.id " +
+                     "JOIN users u ON br.requester_id = u.id " +
+                     "LEFT JOIN recipients r ON u.id = r.user_id " +
+                     "LEFT JOIN hospitals h ON u.id = h.user_id " +
                      "WHERE br.donor_id = ? AND br.status = 'completed' " +
-                     "ORDER BY br.requested_at DESC";
+                     "ORDER BY br.completed_at DESC, br.requested_at DESC";
         
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -360,30 +459,25 @@ public class DonorDAO {
                     BloodRequest br = new BloodRequest();
                     br.setId(rs.getInt("request_id"));
                     br.setDonorId(donorId);
+                    br.setRequesterId(rs.getInt("requester_id"));
                     br.setBloodGroup(rs.getString("blood_group"));
-                    
-                    String notes = rs.getString("notes");
-                    String patientName = "Patient";
-                    String hospitalName = "Hospital";
-                    if (notes != null && notes.contains("|")) {
-                        String[] parts = notes.split("\\|");
-                        for (String part : parts) {
-                            if (part.contains("Patient:")) {
-                                patientName = part.replace("Patient:", "").trim();
-                            }
-                            if (part.contains("Location/Hospital:")) {
-                                hospitalName = part.replace("Location/Hospital:", "").trim();
-                            }
-                        }
-                    } else if (notes != null) {
-                        hospitalName = notes;
-                    }
-                    
-                    br.setPatientName(patientName);
-                    br.setHospitalName(hospitalName);
-                    br.setLocation(hospitalName);
                     br.setStatus(rs.getString("status"));
                     br.setRequestDate(rs.getTimestamp("request_date"));
+                    br.setUnitsNeeded(rs.getInt("units_needed"));
+                    br.setUrgency(rs.getString("urgency"));
+                    
+                    String role = rs.getString("requester_role");
+                    br.setRequesterRole(role != null ? role.toLowerCase() : "recipient");
+                    
+                    String notes = rs.getString("notes");
+                    parseNotesAndProfile(
+                        br, 
+                        notes, 
+                        rs.getString("user_full_name"), 
+                        rs.getString("hospital_name"), 
+                        rs.getString("hospital_address"), 
+                        rs.getDate("recipient_dob")
+                    );
                     history.add(br);
                 }
             }
@@ -458,4 +552,304 @@ public class DonorDAO {
         }
         return false;
     }
+
+    public void seedDummyHospitalRequest(int donorId) {
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Resolve donor's blood group ID
+            int donorBloodGroupId = 1; // Default to A+
+            String sqlDonorBG = "SELECT blood_group_id FROM donors WHERE user_id = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlDonorBG)) {
+                pstmt.setInt(1, donorId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        donorBloodGroupId = rs.getInt("blood_group_id");
+                    }
+                }
+            }
+
+            // 2. Check if the dummy hospital user exists
+            int hospitalUserId = 0;
+            String sqlCheckUser = "SELECT id FROM users WHERE email = 'hospital.test@lifelink.com'";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlCheckUser)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        hospitalUserId = rs.getInt("id");
+                    }
+                }
+            }
+
+            // 3. Create dummy hospital user if not exists
+            if (hospitalUserId == 0) {
+                String sqlInsertUser = "INSERT INTO users (full_name, email, password_hash, confirm_password_hash, role, is_active, is_approved) " +
+                                       "VALUES ('City Care Hospital', 'hospital.test@lifelink.com', 'password', 'password', 'hospital', 1, 1)";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertUser, Statement.RETURN_GENERATED_KEYS)) {
+                    pstmt.executeUpdate();
+                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            hospitalUserId = generatedKeys.getInt(1);
+                        }
+                    }
+                }
+            }
+
+            if (hospitalUserId > 0) {
+                // 4. Create hospital profile if not exists
+                boolean hospitalExists = false;
+                String sqlCheckHospital = "SELECT 1 FROM hospitals WHERE user_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlCheckHospital)) {
+                    pstmt.setInt(1, hospitalUserId);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        hospitalExists = rs.next();
+                    }
+                }
+
+                if (!hospitalExists) {
+                    String sqlInsertHospital = "INSERT INTO hospitals (user_id, hospital_name, district_id, address) " +
+                                               "VALUES (?, 'City Care Hospital', 27, 'Maharajgunj, Kathmandu')";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertHospital)) {
+                        pstmt.setInt(1, hospitalUserId);
+                        pstmt.executeUpdate();
+                    }
+                }
+
+                // 5. Check if there is already a pending request from this hospital for this donor
+                boolean requestExists = false;
+                String sqlCheckRequest = "SELECT 1 FROM blood_requests WHERE requester_id = ? AND donor_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlCheckRequest)) {
+                    pstmt.setInt(1, hospitalUserId);
+                    pstmt.setInt(2, donorId);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        requestExists = rs.next();
+                    }
+                }
+
+                if (!requestExists) {
+                    String sqlInsertRequest = "INSERT INTO blood_requests (requester_id, donor_id, blood_group_id, units_needed, urgency, status, notes) " +
+                                              "VALUES (?, ?, ?, 2, 'urgent', 'pending', 'Urgent surgical blood requirement.')";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertRequest)) {
+                        pstmt.setInt(1, hospitalUserId);
+                        pstmt.setInt(2, donorId);
+                        pstmt.setInt(3, donorBloodGroupId);
+                        pstmt.executeUpdate();
+                    }
+                }
+            }
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+        }
+    }
+
+    public void seedDummyRecipientRequest(int donorId) {
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // 1. Resolve donor's blood group ID
+            int donorBloodGroupId = 1; // Default to A+
+            String sqlDonorBG = "SELECT blood_group_id FROM donors WHERE user_id = ?";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlDonorBG)) {
+                pstmt.setInt(1, donorId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        donorBloodGroupId = rs.getInt("blood_group_id");
+                    }
+                }
+            }
+
+            // 2. Check if the dummy recipient user exists
+            int recipientUserId = 0;
+            String sqlCheckUser = "SELECT id FROM users WHERE email = 'recipient.test@lifelink.com'";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlCheckUser)) {
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        recipientUserId = rs.getInt("id");
+                    }
+                }
+            }
+
+            // 3. Create dummy recipient user if not exists
+            if (recipientUserId == 0) {
+                String sqlInsertUser = "INSERT INTO users (full_name, email, password_hash, confirm_password_hash, role, is_active, is_approved) " +
+                                       "VALUES ('Sarah Recipient', 'recipient.test@lifelink.com', 'password', 'password', 'recipient', 1, 1)";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertUser, Statement.RETURN_GENERATED_KEYS)) {
+                    pstmt.executeUpdate();
+                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            recipientUserId = generatedKeys.getInt(1);
+                        }
+                    }
+                }
+            }
+
+            if (recipientUserId > 0) {
+                // 4. Create recipient profile if not exists
+                boolean recipientExists = false;
+                String sqlCheckRecipient = "SELECT 1 FROM recipients WHERE user_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlCheckRecipient)) {
+                    pstmt.setInt(1, recipientUserId);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        recipientExists = rs.next();
+                    }
+                }
+
+                if (!recipientExists) {
+                    String sqlInsertRecipient = "INSERT INTO recipients (user_id, blood_group_id, address, date_of_birth, gender) " +
+                                                "VALUES (?, ?, 'Kathmandu, Nepal', '1998-05-15', 'female')";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertRecipient)) {
+                        pstmt.setInt(1, recipientUserId);
+                        pstmt.setInt(2, donorBloodGroupId);
+                        pstmt.executeUpdate();
+                    }
+                }
+
+                // 5. Check if there is already a pending request from this recipient for this donor
+                boolean requestExists = false;
+                String sqlCheckRequest = "SELECT 1 FROM blood_requests WHERE requester_id = ? AND donor_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlCheckRequest)) {
+                    pstmt.setInt(1, recipientUserId);
+                    pstmt.setInt(2, donorId);
+                    try (ResultSet rs = pstmt.executeQuery()) {
+                        requestExists = rs.next();
+                    }
+                }
+
+                if (!requestExists) {
+                    String sqlInsertRequest = "INSERT INTO blood_requests (requester_id, donor_id, blood_group_id, units_needed, urgency, status, notes) " +
+                                              "VALUES (?, ?, ?, 3, 'critical', 'pending', 'Urgent blood required for major surgery.')";
+                    try (PreparedStatement pstmt = conn.prepareStatement(sqlInsertRequest)) {
+                        pstmt.setInt(1, recipientUserId);
+                        pstmt.setInt(2, donorId);
+                        pstmt.setInt(3, donorBloodGroupId);
+                        pstmt.executeUpdate();
+                    }
+                }
+            }
+
+            conn.commit();
+        } catch (SQLException e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+        }
+    }
+
+    private void parseNotesAndProfile(BloodRequest br, String notes, String userFullName, String hospitalNameDb, String hospitalAddressDb, java.sql.Date recipientDob) {
+        if ("hospital".equals(br.getRequesterRole())) {
+            String hName = hospitalNameDb;
+            if (hName == null || hName.trim().isEmpty()) {
+                hName = userFullName;
+            }
+            br.setHospitalName(hName != null ? hName : "Hospital");
+            br.setLocation(hospitalAddressDb != null && !hospitalAddressDb.trim().isEmpty() ? hospitalAddressDb : "Hospital Location");
+            br.setPatientName("N/A");
+            br.setPatientAge(0);
+        } else {
+            // Recipient request
+            String patientName = userFullName;
+            String hospitalName = "Hospital";
+            
+            if (notes != null && !notes.trim().isEmpty()) {
+                String trimmedNotes = notes.trim();
+                // Check if it's JSON
+                if (trimmedNotes.startsWith("{") && trimmedNotes.endsWith("}")) {
+                    try {
+                        if (trimmedNotes.contains("\"patientName\"")) {
+                            patientName = extractJsonField(trimmedNotes, "patientName");
+                        } else if (trimmedNotes.contains("\"patient_name\"")) {
+                            patientName = extractJsonField(trimmedNotes, "patient_name");
+                        }
+                        if (trimmedNotes.contains("\"hospitalName\"")) {
+                            hospitalName = extractJsonField(trimmedNotes, "hospitalName");
+                        } else if (trimmedNotes.contains("\"hospital_name\"")) {
+                            hospitalName = extractJsonField(trimmedNotes, "hospital_name");
+                        } else if (trimmedNotes.contains("\"hospital\"")) {
+                            hospitalName = extractJsonField(trimmedNotes, "hospital");
+                        }
+                    } catch (Exception e) {
+                        // Fallback
+                    }
+                } else {
+                    // Check pipe-separated, comma-separated, or newline-separated key-value pairs
+                    String[] parts = trimmedNotes.split("[|,\n]");
+                    boolean parsedAny = false;
+                    for (String part : parts) {
+                        String clean = part.trim();
+                        if (clean.toLowerCase().startsWith("patient:")) {
+                            patientName = clean.substring(8).trim();
+                            parsedAny = true;
+                        } else if (clean.toLowerCase().startsWith("patient name:")) {
+                            patientName = clean.substring(13).trim();
+                            parsedAny = true;
+                        } else if (clean.toLowerCase().startsWith("hospital:")) {
+                            hospitalName = clean.substring(9).trim();
+                            parsedAny = true;
+                        } else if (clean.toLowerCase().startsWith("hospital name:")) {
+                            hospitalName = clean.substring(14).trim();
+                            parsedAny = true;
+                        } else if (clean.toLowerCase().startsWith("location/hospital:")) {
+                            hospitalName = clean.substring(18).trim();
+                            parsedAny = true;
+                        } else if (clean.toLowerCase().startsWith("location:")) {
+                            hospitalName = clean.substring(9).trim();
+                            parsedAny = true;
+                        }
+                    }
+                    // Fallback if no specific keys were parsed
+                    if (!parsedAny) {
+                        hospitalName = trimmedNotes;
+                    }
+                }
+            }
+            
+            // Age calculation from DOB
+            int age = 0;
+            if (recipientDob != null) {
+                java.time.LocalDate birthDate = recipientDob.toLocalDate();
+                java.time.LocalDate currentDate = java.time.LocalDate.now();
+                age = java.time.Period.between(birthDate, currentDate).getYears();
+            }
+            
+            br.setPatientName(patientName != null && !patientName.isEmpty() ? patientName : (userFullName != null ? userFullName : "Patient"));
+            br.setPatientAge(age);
+            br.setHospitalName(hospitalName != null && !hospitalName.isEmpty() ? hospitalName : "Hospital");
+            br.setLocation(br.getHospitalName());
+        }
+    }
+
+    private String extractJsonField(String json, String field) {
+        int idx = json.indexOf("\"" + field + "\"");
+        if (idx != -1) {
+            int colonIdx = json.indexOf(":", idx);
+            if (colonIdx != -1) {
+                int startQuote = json.indexOf("\"", colonIdx);
+                if (startQuote != -1) {
+                    int endQuote = json.indexOf("\"", startQuote + 1);
+                    if (endQuote != -1) {
+                        return json.substring(startQuote + 1, endQuote);
+                    }
+                }
+            }
+        }
+        return "";
+    }
 }
+

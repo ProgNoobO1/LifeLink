@@ -128,7 +128,7 @@ public class DonorServletTest {
         when(request.getPathInfo()).thenReturn("/updateStatus");
         when(request.getParameter("requestId")).thenReturn("12");
         when(request.getParameter("status")).thenReturn("Accepted");
-        when(donorDAO.updateRequestStatus(12, "Accepted")).thenReturn(true);
+        when(donorDAO.updateRequestStatus(12, 1, "Accepted")).thenReturn(true);
 
         servlet.doPost(request, response);
 
