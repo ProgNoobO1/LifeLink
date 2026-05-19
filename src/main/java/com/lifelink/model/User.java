@@ -85,4 +85,16 @@ public class User {
         }
         return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
     }
+
+    public String getFormattedDate() {
+        if (createdAt == null) return "";
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy");
+        return createdAt.format(formatter);
+    }
+
+    public String getMemberSince() {
+        if (createdAt == null) return "";
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy");
+        return createdAt.format(formatter);
+    }
 }

@@ -505,15 +505,11 @@
             <div class="card">
                 <div class="card-head">
                     <div>
-                        <h3>Recent Requests</h3>
-                        <p>Latest blood request activity</p>
+                        <h3>Recent Users</h3>
+                        <p>Latest registered users</p>
                     </div>
                     <div class="card-actions">
                         <a href="${pageContext.request.contextPath}/admin/users" class="btn-red-outline" style="text-decoration:none;">View All</a>
-                        <button class="btn-outline">
-                            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                            Filter
-                        </button>
                     </div>
                 </div>
 
@@ -551,11 +547,11 @@
                                     <span class="status-pill pending">Inactive</span>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="status-pill rejected">Suspended</span>
+                                    <span class="status-pill rejected">Rejected</span>
                                 </c:otherwise>
                             </c:choose>
                         </td>
-                        <td><a href="${pageContext.request.contextPath}/admin/users" class="review-link">View</a></td>
+
                     </tr>
                     </c:forEach>
                     <c:if test="${empty recentUsers}">
@@ -661,5 +657,12 @@
     </div><!-- /content -->
 </div><!-- /main -->
 
+  <script>
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+  </script>
 </body>
 </html>

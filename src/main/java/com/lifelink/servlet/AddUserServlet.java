@@ -67,7 +67,7 @@ public class AddUserServlet extends HttpServlet {
             EmailService.sendEmail(email, welcomeSubject, welcomeBody);
 
             session.setAttribute("successMessage", "User created successfully!");
-            resp.sendRedirect(req.getContextPath() + "/admin/users");
+            resp.sendRedirect(req.getContextPath() + "/admin/users?ts=" + System.currentTimeMillis());
 
         } catch (AuthException e) {
             req.setAttribute("error", e.getMessage());

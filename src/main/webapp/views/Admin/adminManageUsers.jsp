@@ -559,12 +559,6 @@
           <input type="text" id="userSearch" placeholder="Search users..." oninput="filterTable()"/>
         </div>
 
-        <button class="btn-filter">
-          <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-          Filter
-          <svg viewBox="0 0 24 24" style="width:12px;height:12px;"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-
         <button class="btn-add" type="button" onclick="openAddUserModal()">
           <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
           Add New User
@@ -575,7 +569,6 @@
       <table id="userTable">
         <thead>
         <tr>
-          <th><input type="checkbox" id="selectAll" onchange="toggleAll(this)"/></th>
           <th>Name</th>
           <th>Email</th>
           <th>Role</th>
@@ -595,7 +588,6 @@
           <c:otherwise>
             <c:forEach items="${users}" var="user" varStatus="loop">
               <tr>
-                <td><input type="checkbox" class="row-cb"/></td>
                 <td>
                   <div class="user-cell">
                     <div class="user-thumb" style="background:
@@ -661,7 +653,7 @@
                       <span class="status-pill status-inactive">Inactive</span>
                     </c:when>
                     <c:otherwise>
-                      <span class="status-pill status-suspended">Suspended</span>
+                      <span class="status-pill status-suspended">Rejected</span>
                     </c:otherwise>
                   </c:choose>
                 </td>
@@ -669,12 +661,6 @@
                   <div class="action-btns">
                     <button class="act-btn act-view" title="View" onclick="openViewUserModal(${user.id})"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
                     <button class="act-btn act-edit" title="Edit" onclick="openEditUserModal(${user.id})"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                    <c:if test="${user.status == 'INACTIVE'}">
-                      <form action="${pageContext.request.contextPath}/admin/users/approve" method="post" style="display:inline;" onsubmit="return confirm('Approve this user?');">
-                        <input type="hidden" name="id" value="${user.id}" />
-                        <button type="submit" class="act-btn act-approve" title="Approve"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></button>
-                      </form>
-                    </c:if>
                     <button class="act-btn act-delete" title="Delete" onclick="openDeleteConfirmModal(${user.id})"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
                   </div>
                 </td>
@@ -792,7 +778,7 @@
         <select name="status" required>
           <option value="ACTIVE" ${status == 'ACTIVE' || empty status ? 'selected' : ''}>Active</option>
           <option value="INACTIVE" ${status == 'INACTIVE' ? 'selected' : ''}>Inactive</option>
-          <option value="SUSPENDED" ${status == 'SUSPENDED' ? 'selected' : ''}>Suspended</option>
+          <option value="SUSPENDED" ${status == 'SUSPENDED' ? 'selected' : ''}>Rejected</option>
         </select>
       </div>
       <div class="form-group">
@@ -894,7 +880,7 @@
         <select name="editStatus" required>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
-          <option value="SUSPENDED">Suspended</option>
+          <option value="SUSPENDED">Rejected</option>
         </select>
       </div>
       <div class="form-group">
@@ -913,10 +899,6 @@
 </div>
 
 <script>
-  function toggleAll(master) {
-    document.querySelectorAll('.row-cb').forEach(cb => cb.checked = master.checked);
-  }
-
   function filterTable() {
     const q = document.getElementById('userSearch').value.toLowerCase();
     document.querySelectorAll('#userTable tbody tr').forEach(tr => {
@@ -949,6 +931,12 @@
   // Auto-open add modal if navigated from dashboard "Add User" button
   if (window.location.search.includes('action=add')) {
     openAddUserModal();
+  }
+
+  // Auto-open edit modal if navigated from user detail page
+  const editMatch = window.location.search.match(/[?&]action=edit&id=(\d+)/);
+  if (editMatch) {
+    openEditUserModal(parseInt(editMatch[1]));
   }
 
   // Close on backdrop click
@@ -1070,5 +1058,13 @@
   });
 </script>
 
+  <script>
+    // Force reload when page is restored from bfcache (browser back button)
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+  </script>
 </body>
 </html>

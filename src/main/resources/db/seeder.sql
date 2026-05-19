@@ -263,6 +263,21 @@ CREATE TABLE email_notifications (
     INDEX idx_notif_user   (user_id)
 ) ENGINE=InnoDB;
 
+-- 9b. IN-APP NOTIFICATIONS (admin dashboard real-time feed)
+
+CREATE TABLE notifications (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    type            VARCHAR(50) NOT NULL,
+    title           VARCHAR(255) NOT NULL,
+    message         TEXT,
+    link            VARCHAR(500),
+    is_read         TINYINT(1) NOT NULL DEFAULT 0,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    INDEX idx_notif_read    (is_read),
+    INDEX idx_notif_created (created_at)
+) ENGINE=InnoDB;
+
 
 -- 10. SESSIONS  (server-side session management)
 

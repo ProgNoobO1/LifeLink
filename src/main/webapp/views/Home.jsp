@@ -473,7 +473,7 @@
         <a href="#how-it-works">How it Works</a>
         <a href="#blood-groups">Blood Types</a>
         <a href="#stats">Impact</a>
-        <a href="<%= request.getContextPath() %>/about">About Us</a>
+        <a href="<%= request.getContextPath() %>/views/aboutus.jsp">About Us</a>
         <a href="<%= request.getContextPath() %>/contact">Contact</a>
     </div>
     <div class="nav-cta">

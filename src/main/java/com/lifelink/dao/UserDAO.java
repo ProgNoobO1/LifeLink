@@ -26,8 +26,15 @@ public class UserDAO {
         }
 
         int isActive = rs.getInt("is_active");
-        user.setStatus(isActive == 1 ? User.Status.ACTIVE : User.Status.INACTIVE);
-        user.setApproved(rs.getInt("is_approved") == 1);
+        int isApproved = rs.getInt("is_approved");
+        if (isActive == 1) {
+            user.setStatus(User.Status.ACTIVE);
+        } else if (isApproved == 1) {
+            user.setStatus(User.Status.SUSPENDED); // rejected
+        } else {
+            user.setStatus(User.Status.INACTIVE); // pending
+        }
+        user.setApproved(isApproved == 1);
 
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
@@ -85,8 +92,10 @@ public class UserDAO {
             stmt.setString(5, user.getPasswordHash());
             stmt.setString(6, user.getPasswordHash());
             stmt.setString(7, user.getRole().name().toLowerCase());
-            stmt.setInt(8, user.getStatus() == User.Status.ACTIVE ? 1 : 0);
-            stmt.setInt(9, user.isApproved() ? 1 : 0);
+            int isActiveVal = user.getStatus() == User.Status.ACTIVE ? 1 : 0;
+            int isApprovedVal = user.getStatus() == User.Status.SUSPENDED || user.isApproved() ? 1 : 0;
+            stmt.setInt(8, isActiveVal);
+            stmt.setInt(9, isApprovedVal);
 
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {

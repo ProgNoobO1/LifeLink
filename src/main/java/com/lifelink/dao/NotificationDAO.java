@@ -1,76 +1,130 @@
 package com.lifelink.dao;
 
-import com.lifelink.model.Notification;
-import com.lifelink.utils.DBConnection;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * In-memory notification store.
- * The user's schema does not include a {@code notifications} table;
- * only {@code email_notifications} exists.  This DAO keeps recent
- * in-app notifications in memory for the SSE feed and unread counts.
- */
+import com.lifelink.model.Notification;
+import com.lifelink.utils.DBConnection;
+
 public class NotificationDAO {
 
-    private static final List<Notification> STORE = new CopyOnWriteArrayList<>();
-    private static final int MAX_SIZE = 200;
+    private Notification mapResultSet(ResultSet rs) throws SQLException {
+        Notification n = new Notification();
+        n.setId(rs.getLong("id"));
+        n.setType(rs.getString("type"));
+        n.setTitle(rs.getString("title"));
+        n.setMessage(rs.getString("message"));
+        n.setLink(rs.getString("link"));
+        n.setRead(rs.getInt("is_read") == 1);
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) {
+            n.setCreatedAt(createdAt.toLocalDateTime());
+        }
+        return n;
+    }
 
     public boolean save(Notification notification) {
-        STORE.add(0, notification);
-        if (STORE.size() > MAX_SIZE) {
-            STORE.remove(STORE.size() - 1);
+        String sql = "INSERT INTO notifications (type, title, message, link, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, notification.getType());
+            stmt.setString(2, notification.getTitle());
+            stmt.setString(3, notification.getMessage());
+            stmt.setString(4, notification.getLink());
+            stmt.setInt(5, notification.isRead() ? 1 : 0);
+            stmt.setTimestamp(6, Timestamp.valueOf(notification.getCreatedAt() != null ? notification.getCreatedAt() : LocalDateTime.now()));
+
+            int affected = stmt.executeUpdate();
+            if (affected == 0) {
+                return false;
+            }
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    notification.setId(keys.getLong(1));
+                }
+            }
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return true;
     }
 
     public List<Notification> findUnread() {
-        List<Notification> unread = new ArrayList<>();
-        for (Notification n : STORE) {
-            if (!n.isRead()) {
-                unread.add(n);
+        String sql = "SELECT * FROM notifications WHERE is_read = 0 ORDER BY created_at DESC LIMIT 50";
+        List<Notification> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSet(rs));
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
         }
-        return unread;
+        return list;
     }
 
     public long countUnread() {
-        int count = 0;
-        for (Notification n : STORE) {
-            if (!n.isRead()) {
-                count++;
+        String sql = "SELECT COUNT(*) FROM notifications WHERE is_read = 0";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getLong(1);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return count;
+        return 0;
     }
 
     public boolean markRead(Long id) {
-        for (Notification n : STORE) {
-            if (n.getId() != null && n.getId().equals(id)) {
-                n.setRead(true);
-                return true;
-            }
+        String sql = "UPDATE notifications SET is_read = 1 WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
 
     public boolean markAllRead() {
-        for (Notification n : STORE) {
-            n.setRead(true);
+        String sql = "UPDATE notifications SET is_read = 1 WHERE is_read = 0";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            return stmt.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return true;
     }
 
     public List<Notification> findAll() {
-        return new ArrayList<>(STORE);
+        String sql = "SELECT * FROM notifications ORDER BY created_at DESC LIMIT 200";
+        List<Notification> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+        return list;
     }
 
     public int getUnreadCount(int userId) throws SQLException {
