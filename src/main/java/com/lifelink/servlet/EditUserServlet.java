@@ -50,7 +50,7 @@ public class EditUserServlet extends HttpServlet {
                     bloodGroup, password, role, status, admin);
 
             session.setAttribute("successMessage", "User updated successfully!");
-            resp.sendRedirect(req.getContextPath() + "/admin/users");
+            resp.sendRedirect(req.getContextPath() + "/admin/users?ts=" + System.currentTimeMillis());
 
         } catch (AuthException e) {
             resp.sendRedirect(req.getContextPath() + "/admin/users?error=" + URLEncoder.encode(e.getMessage(), "UTF-8"));

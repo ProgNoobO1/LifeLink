@@ -42,40 +42,7 @@
   .topbar-title h1 { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); }
   .topbar-title p  { font-size: .8rem; color: var(--text-mid); margin-top: .1rem; }
 
-  .topbar-search {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .topbar-search svg {
-    position: absolute;
-    left: .8rem;
-    width: 16px; height: 16px;
-    fill: none;
-    stroke: var(--text-light);
-    stroke-width: 2;
-  }
-
-  .topbar-search input {
-    padding: .5rem 1rem .5rem 2.3rem;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: .85rem;
-    background: #fafafa;
-    color: var(--text-dark);
-    outline: none;
-    width: 200px;
-    transition: border-color .2s, box-shadow .2s;
-  }
-
-  .topbar-search input:focus {
-    border-color: var(--red);
-    box-shadow: 0 0 0 3px var(--red-light);
-  }
-
-  .topbar-actions { display: flex; align-items: center; gap: .75rem; }
+  .topbar-actions { display: flex; align-items: center; gap: .75rem; margin-left: auto; }
 
   /* NOTIFICATION */
   .notif-wrap { position: relative; }
@@ -284,7 +251,6 @@
     .topbar { padding: .75rem 1rem; gap: .5rem; flex-wrap: wrap; }
     .topbar-title h1 { font-size: 1rem; }
     .topbar-title p { display: none; }
-    .topbar-search { display: none; }
     .topbar-user .uname, .topbar-user .uemail { display: none; }
   }
   .hamburger {
@@ -377,11 +343,6 @@
     <p><%= pageSubtitle %></p>
   </div>
 
-  <form class="topbar-search" method="get" action="<%= request.getContextPath() %><%= (topUri != null && topUri.contains("/admin/requests")) ? "/admin/requests" : "/admin/dashboard" %>">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" name="search" placeholder="<%= (topUri != null && topUri.contains("/admin/requests")) ? "Search requests..." : "Search..." %>" value="<%= request.getParameter("search") != null ? request.getParameter("search") : "" %>"/>
-  </form>
-
   <div class="topbar-actions">
 
     <!-- NOTIFICATIONS -->
@@ -451,10 +412,6 @@
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="user-dropdown" id="userDropdown">
-        <a href="<%= request.getContextPath() %>/admin/users/view?id=<%= currentAdmin != null ? currentAdmin.getId() : "" %>" class="ud-item">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Profile
-        </a>
         <div class="ud-divider"></div>
         <a href="<%= request.getContextPath() %>/logout" class="ud-item logout">
           <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>

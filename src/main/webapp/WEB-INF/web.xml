@@ -134,6 +134,15 @@
   </servlet-mapping>
 
   <servlet>
+    <servlet-name>RejectUserServlet</servlet-name>
+    <servlet-class>com.lifelink.servlet.RejectUserServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RejectUserServlet</servlet-name>
+    <url-pattern>/admin/users/reject</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
     <servlet-name>ApproveUserServlet</servlet-name>
     <servlet-class>com.lifelink.servlet.ApproveUserServlet</servlet-class>
   </servlet>

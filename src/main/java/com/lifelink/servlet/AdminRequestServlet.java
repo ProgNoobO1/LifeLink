@@ -18,6 +18,9 @@ public class AdminRequestServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        resp.setHeader("Pragma", "no-cache");
+        resp.setDateHeader("Expires", 0);
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("currentUser") == null) {
             resp.sendRedirect(req.getContextPath() + "/views/login.jsp");
@@ -52,7 +55,7 @@ public class AdminRequestServlet extends HttpServlet {
         } else if ("approved".equalsIgnoreCase(statusFilter)) {
             activeFilter = "approved";
             filteredList = registrationRequests.stream()
-                .filter(u -> u.isApproved())
+                .filter(u -> u.isApproved() && u.getStatus() == User.Status.ACTIVE)
                 .collect(Collectors.toList());
         } else if ("rejected".equalsIgnoreCase(statusFilter)) {
             activeFilter = "rejected";
@@ -92,7 +95,7 @@ public class AdminRequestServlet extends HttpServlet {
 
         long totalRequests = registrationRequests.size();
         long pendingCount = registrationRequests.stream().filter(u -> !u.isApproved()).count();
-        long approvedCount = registrationRequests.stream().filter(User::isApproved).count();
+        long approvedCount = registrationRequests.stream().filter(u -> u.isApproved() && u.getStatus() == User.Status.ACTIVE).count();
         long rejectedCount = registrationRequests.stream().filter(u -> u.getStatus() == User.Status.SUSPENDED).count();
 
         req.setAttribute("requests", pageItems);

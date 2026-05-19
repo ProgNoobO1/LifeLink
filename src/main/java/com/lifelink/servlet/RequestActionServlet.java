@@ -1,6 +1,7 @@
 package com.lifelink.servlet;
 
 import com.lifelink.dao.BloodRequestDAO;
+import com.lifelink.dao.UserDAO;
 import com.lifelink.model.BloodRequest;
 import com.lifelink.model.Notification;
 import com.lifelink.model.User;
@@ -14,9 +15,13 @@ import java.io.IOException;
 public class RequestActionServlet extends HttpServlet {
 
     private final BloodRequestDAO requestDAO = new BloodRequestDAO();
+    private final UserDAO userDAO = new UserDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        resp.setHeader("Pragma", "no-cache");
+        resp.setDateHeader("Expires", 0);
         HttpSession session = req.getSession(false);
         if (session == null || session.getAttribute("currentUser") == null) {
             resp.sendRedirect(req.getContextPath() + "/views/login.jsp?error=Please+login+first");
@@ -35,22 +40,40 @@ public class RequestActionServlet extends HttpServlet {
             return;
         }
 
-        long requestId;
+        long entityId;
         try {
-            requestId = Long.parseLong(idParam);
+            entityId = Long.parseLong(idParam);
         } catch (NumberFormatException e) {
             resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Invalid+request+ID");
             return;
         }
 
-        BloodRequest request = requestDAO.findById(requestId);
-        if (request == null) {
-            resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Request+not+found");
+        // Try blood request first (from notifications)
+        BloodRequest request = requestDAO.findById(entityId);
+        if (request != null) {
+            // Lookup the user associated with this blood request
+            User user = userDAO.findByEmail(request.getRequesterEmail());
+            if (user != null) {
+                req.setAttribute("userDetail", user);
+                req.setAttribute("requestDetail", request);
+                req.getRequestDispatcher("/views/Admin/adminRequestDetail.jsp").forward(req, resp);
+                return;
+            }
+            // If no user found, fallback to old request detail view
+            req.setAttribute("requestDetail", request);
+            req.getRequestDispatcher("/views/Admin/adminRequestDetail.jsp").forward(req, resp);
             return;
         }
 
-        req.setAttribute("requestDetail", request);
-        req.getRequestDispatcher("/views/Admin/adminRequestDetail.jsp").forward(req, resp);
+        // Try user directly (from adminRequest.jsp view button)
+        User user = userDAO.findById(entityId);
+        if (user != null) {
+            req.setAttribute("userDetail", user);
+            req.getRequestDispatcher("/views/Admin/adminRequestDetail.jsp").forward(req, resp);
+            return;
+        }
+
+        resp.sendRedirect(req.getContextPath() + "/admin/requests?error=Request+not+found");
     }
 
     @Override

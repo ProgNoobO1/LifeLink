@@ -401,9 +401,8 @@
 
         <!-- DATE BAR -->
         <div class="date-bar">
-            <div class="date-picker">
-                <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
-                ${fromDate} &nbsp;—&nbsp; ${toDate} &nbsp;<span style="color:var(--text-light);">▼</span>
+            <div style="font-size:.85rem;color:var(--text-mid);font-weight:500;">
+                ${fromDate} &nbsp;—&nbsp; ${toDate}
             </div>
             <div class="date-pills">
                 <a href="${pageContext.request.contextPath}/admin/reports?period=month" class="dpill ${empty period || period eq 'month' ? 'active' : ''}">This Month</a>
@@ -441,9 +440,7 @@
                             <svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5M12 9v10"/></svg>
                             ${totalDonated} units
                         </span>
-                        <button class="card-icon-btn">
-                            <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 9l-5 5-4-4-3 3"/></svg>
-                        </button>
+
                     </div>
                 </div>
                 <div class="chart-area">
@@ -462,9 +459,7 @@
                         <h3>Blood Group Distribution</h3>
                         <p>Donor share by blood type</p>
                     </div>
-                    <button class="card-icon-btn">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                    </button>
+
                 </div>
                 <div class="donut-wrap" id="bgChart">
                     <!-- Populated by JS -->

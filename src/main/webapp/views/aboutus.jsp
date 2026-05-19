@@ -264,7 +264,7 @@
   </a>
   <ul class="nav-links">
     <li><a href="${pageContext.request.contextPath}/views/Home.jsp">Home</a></li>
-    <li><a href="${pageContext.request.contextPath}/views/about.jsp" class="active">About</a></li>
+    <li><a href="${pageContext.request.contextPath}/views/aboutus.jsp" class="active">About</a></li>
     <li><a href="#">Contact</a></li>
   </ul>
   <a class="nav-btn" href="${pageContext.request.contextPath}/views/login.jsp">Login</a>
@@ -386,7 +386,7 @@
   </a>
 </div>
 
-<!-- ── FOOTER ── */
+<!-- ── FOOTER ── -->
 <footer>
   <div class="footer-grid">
     <div class="footer-brand">
@@ -407,7 +407,7 @@
       <h5>Quick Links</h5>
       <ul>
         <li><a href="${pageContext.request.contextPath}/views/Home.jsp">Home</a></li>
-        <li><a href="${pageContext.request.contextPath}/views/about.jsp">About</a></li>
+        <li><a href="${pageContext.request.contextPath}/views/aboutus.jsp">About</a></li>
         <li><a href="#">Contact</a></li>
         <li><a href="${pageContext.request.contextPath}/views/login.jsp">Login</a></li>
       </ul>
