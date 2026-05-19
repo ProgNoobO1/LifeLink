@@ -11,13 +11,13 @@ public class DBConnection {
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/lifelink_db?useSSL=false&serverTimezone=UTC";
     private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "your_new_password";
+    private static final String DB_PASS = "your_new_password";
 
     static {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DB_URL);
         config.setUsername(DB_USER);
-        config.setPassword(DB_PASSWORD);
+        config.setPassword(DB_PASS);
         config.setDriverClassName("com.mysql.cj.jdbc.Driver");
 
         // Pool settings
