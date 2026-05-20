@@ -311,6 +311,10 @@ public class RequestServlet extends HttpServlet {
     private void redirectAfterNotificationRead(HttpServletRequest req, HttpServletResponse resp, String requestIdRaw, String returnUrl)
             throws IOException {
         if (returnUrl != null && returnUrl.startsWith(req.getContextPath() + "/")) {
+            if (returnUrl.contains("/views/recipient/recipient_dashboard.jsp")) {
+                resp.sendRedirect(req.getContextPath() + "/recipient/dashboard");
+                return;
+            }
             resp.sendRedirect(returnUrl);
             return;
         }

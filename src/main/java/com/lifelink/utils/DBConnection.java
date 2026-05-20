@@ -11,7 +11,7 @@ public class DBConnection {
 
     private static final String DB_URL = "jdbc:mysql://localhost:3306/lifelink_db?useSSL=false&serverTimezone=UTC";
     private static final String DB_USER = "root";
-    private static final String DB_PASS = "your_new_password";
+    private static final String DB_PASS = "1234567890";
 
     static {
         HikariConfig config = new HikariConfig();

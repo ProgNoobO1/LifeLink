@@ -11,12 +11,19 @@
     String email = (user != null) ? user.getEmail() : "";
     String initials = (user != null) ? user.getInitials() : "R";
 
-    long totalReq = (Long) request.getAttribute("totalRequests");
-    long pendingReq = (Long) request.getAttribute("pendingRequests");
-    long fulfilledReq = (Long) request.getAttribute("fulfilledRequests");
+    Object totalReqObj = request.getAttribute("totalRequests");
+    Object pendingReqObj = request.getAttribute("pendingRequests");
+    Object fulfilledReqObj = request.getAttribute("fulfilledRequests");
+    long totalReq = totalReqObj instanceof Number ? ((Number) totalReqObj).longValue() : 0L;
+    long pendingReq = pendingReqObj instanceof Number ? ((Number) pendingReqObj).longValue() : 0L;
+    long fulfilledReq = fulfilledReqObj instanceof Number ? ((Number) fulfilledReqObj).longValue() : 0L;
 
     List<Map<String,Object>> recentReqs = (List<Map<String,Object>>) request.getAttribute("recentRequests");
     List<Map<String,Object>> activity = (List<Map<String,Object>>) request.getAttribute("recentActivity");
+    String profileSuccess = (String) session.getAttribute("profileSuccess");
+    String profileError = (String) session.getAttribute("profileError");
+    if (profileSuccess != null) session.removeAttribute("profileSuccess");
+    if (profileError != null) session.removeAttribute("profileError");
 
     SimpleDateFormat dateFmt = new SimpleDateFormat("MMM dd, yyyy");
 %>
@@ -38,6 +45,8 @@
         .topbar-left h1 { font-size: 1.25rem; font-weight: 700; color: #111827; }
         .topbar-left p { font-size: .82rem; color: #6b7280; margin-top: .15rem; }
         .topbar-right { display: flex; align-items: center; gap: 1rem; }
+        .edit-details-top { display: inline-flex; align-items: center; gap: .4rem; min-height: 36px; padding: 0 .85rem; border-radius: 9px; background: #fee2e2; color: #b91c1c; font-size: .78rem; font-weight: 800; text-decoration: none; white-space: nowrap; }
+        .edit-details-top svg { width: 15px; height: 15px; fill: currentColor; }
         .topbar-user { display: flex; align-items: center; gap: .6rem; cursor: pointer; }
         .topbar-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, #b91c1c, #dc2626); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: .78rem; font-weight: 700; }
         .topbar-uname { font-size: .85rem; font-weight: 600; color: #111827; }
@@ -49,6 +58,9 @@
 
         /* ── PAGE BODY ── */
         .page-body { padding: 1.6rem 2rem 2.5rem; }
+        .flash { max-width: 1120px; margin: 0 auto 1rem; padding: .85rem 1rem; border-radius: 11px; font-size: .84rem; font-weight: 700; }
+        .flash.success { background: #ecfdf3; color: #047857; border: 1px solid #bbf7d0; }
+        .flash.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
         /* ── STAT CARDS ── */
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; margin-bottom: 1.8rem; }
@@ -121,6 +133,8 @@
         .qa-sub { font-size: .76rem; color: #9ca3af; margin-bottom: 1rem; }
         .create-req-btn { display: inline-flex; align-items: center; gap: .4rem; background: linear-gradient(135deg, #b91c1c, #dc2626); color: #fff; font-size: .86rem; font-weight: 600; padding: .7rem 1.6rem; border-radius: 10px; border: none; cursor: pointer; text-decoration: none; transition: opacity .15s; width: 100%; justify-content: center; }
         .create-req-btn:hover { opacity: .9; }
+        .edit-details-btn { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; width: 100%; margin-top: .7rem; padding: .68rem 1.2rem; border-radius: 10px; border: 1px solid #fecaca; background: #fff; color: #b91c1c; font-size: .84rem; font-weight: 800; text-decoration: none; transition: background .15s; }
+        .edit-details-btn:hover { background: #fff7f7; }
 
         .tips-card { background: #fff; border-radius: 14px; padding: 1.2rem; box-shadow: 0 1px 4px rgba(0,0,0,.04); border: 1px solid #f0f0f0; }
         .tips-title { font-size: .92rem; font-weight: 700; color: #111827; margin-bottom: .7rem; display: flex; align-items: center; gap: .4rem; }
@@ -163,6 +177,7 @@
             .stats-grid { grid-template-columns: 1fr; }
             .page-body { padding: 1rem; }
             .topbar { padding: 1rem; }
+            .edit-details-top { display: none; }
         }
         @media (max-width: 600px) {
             .activity-card { flex: 0 0 170px; }
@@ -187,6 +202,10 @@
             </div>
         </div>
         <div class="topbar-right">
+            <a class="edit-details-top" href="${pageContext.request.contextPath}/recipient/edit-details">
+                <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm2 1.66 9.06-9.06.84.84L5.84 19.75H5v-.84ZM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/></svg>
+                Edit Details
+            </a>
             <jsp:include page="/includes/recipient_notifications.jsp" />
             <div class="topbar-user">
                 <div class="topbar-avatar"><%= initials %></div>
@@ -199,6 +218,12 @@
     </div>
 
     <div class="page-body">
+        <% if (profileSuccess != null) { %>
+            <div class="flash success"><%= profileSuccess %></div>
+        <% } %>
+        <% if (profileError != null) { %>
+            <div class="flash error"><%= profileError %></div>
+        <% } %>
 
         <!-- STAT CARDS -->
         <div class="stats-grid">
@@ -300,6 +325,7 @@
                     <div class="qa-heading" style="font-size:.88rem;margin-bottom:.05rem;">Create a Request</div>
                     <div class="qa-sub">Fast. Simple. Life-saving.</div>
                     <a href="${pageContext.request.contextPath}/views/recipient/create_request.jsp" class="create-req-btn">+ Create Request</a>
+                    <a href="${pageContext.request.contextPath}/recipient/edit-details" class="edit-details-btn">Edit Details</a>
                 </div>
 
                 <!-- Request Tips -->
