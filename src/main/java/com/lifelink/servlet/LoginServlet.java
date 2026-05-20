@@ -54,12 +54,16 @@ public class LoginServlet extends HttpServlet {
 
     private void redirectByRole(User user, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String contextPath = req.getContextPath();
+        HttpSession session = req.getSession();
         if (user.getRole() == User.Role.ADMIN) {
             resp.sendRedirect(contextPath + "/admin/dashboard");
-        } else if (user.getRole() == User.Role.DONOR) {
-            resp.sendRedirect(contextPath + "/donor/dashboard");
         } else if (user.getRole() == User.Role.RECIPIENT) {
             resp.sendRedirect(contextPath + "/recipient/dashboard");
+        } else if (user.getRole() == User.Role.DONOR) {
+            if (user.getId() != null) {
+                session.setAttribute("donorId", user.getId().intValue());
+            }
+            resp.sendRedirect(contextPath + "/donor/dashboard");
         } else {
             resp.sendRedirect(contextPath + "/index.jsp");
         }
