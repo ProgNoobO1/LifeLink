@@ -4,6 +4,7 @@ import com.lifelink.dao.DonorDAO;
 import com.lifelink.model.BloodRequest;
 import com.lifelink.model.Donor;
 import com.lifelink.model.Notification;
+import com.lifelink.model.User;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -34,15 +35,7 @@ public class DonorServlet extends HttpServlet {
         String path = request.getPathInfo();
         if (path == null) path = "/dashboard";
         
-        // Authenticated user check - adapted for Donor-only branch
-        HttpSession session = request.getSession();
-        Integer donorIdObj = (Integer) session.getAttribute("donorId");
-        if (donorIdObj == null) {
-            donorIdObj = 1; // Default fallback for standalone / no-auth mode
-            session.setAttribute("donorId", donorIdObj);
-        }
-        
-        int donorId = donorIdObj;
+        int donorId = getDonorId(request);
         donorDAO.seedDummyHospitalRequest(donorId);
         donorDAO.seedDummyRecipientRequest(donorId);
 
@@ -93,14 +86,7 @@ public class DonorServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
-        HttpSession session = request.getSession();
-        Integer donorIdObj = (Integer) session.getAttribute("donorId");
-        if (donorIdObj == null) {
-            donorIdObj = 1;
-            session.setAttribute("donorId", donorIdObj);
-        }
-        
-        int donorId = donorIdObj;
+        int donorId = getDonorId(request);
 
         switch (path) {
             case "/profile":
@@ -115,6 +101,22 @@ public class DonorServlet extends HttpServlet {
             default:
                 response.sendRedirect(request.getContextPath() + "/donor/dashboard");
     }
+    }
+
+    private int getDonorId(HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        Integer donorIdObj = (Integer) session.getAttribute("donorId");
+        if (donorIdObj == null) {
+            User currentUser = (User) session.getAttribute("currentUser");
+            if (currentUser != null && currentUser.getRole() == User.Role.DONOR) {
+                donorIdObj = currentUser.getId().intValue();
+                session.setAttribute("donorId", donorIdObj);
+            } else {
+                donorIdObj = 1; // Default fallback for standalone / no-auth mode
+                session.setAttribute("donorId", donorIdObj);
+            }
+        }
+        return donorIdObj;
     }
 
     private List<Notification> getNotifications(Donor donor, List<BloodRequest> requests) {
