@@ -50,8 +50,6 @@ public class DonorServlet extends HttpServlet {
         }
         
         int donorId = donorIdObj;
-        donorDAO.seedDummyHospitalRequest(donorId);
-        donorDAO.seedDummyRecipientRequest(donorId);
 
         switch (path) {
             case "/dashboard":
