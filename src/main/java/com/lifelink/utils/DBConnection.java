@@ -9,9 +9,10 @@ import java.sql.SQLException;
 public class DBConnection {
     private static final HikariDataSource dataSource;
 
-    private static final String DB_URL  = System.getenv().getOrDefault("DB_URL",  "jdbc:mysql://localhost:3306/lifelink_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC");
+    private static final String DB_URL = System.getenv().getOrDefault("DB_URL",
+            "jdbc:mysql://localhost:3306/lifelink_db?useSSL=false&serverTimezone=UTC");
     private static final String DB_USER = System.getenv().getOrDefault("DB_USER", "root");
-    private static final String DB_PASS = System.getenv().getOrDefault("DB_PASS", "your_new_password");
+    private static final String DB_PASS = System.getenv().getOrDefault("DB_PASS", "Smita@123");
 
     static {
         HikariConfig config = new HikariConfig();
