@@ -1,4 +1,4 @@
-package com.lifelink.servlet;
+package com.lifelink.controllers;
 
 import com.lifelink.dao.DonorDAO;
 import com.lifelink.model.BloodRequest;
