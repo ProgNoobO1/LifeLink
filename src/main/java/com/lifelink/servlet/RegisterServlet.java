@@ -33,8 +33,19 @@ public class RegisterServlet extends HttpServlet {
         String password = req.getParameter("password");
         String confirmPassword = req.getParameter("confirmPassword");
 
+        User.Role role;
+        try {
+            if (roleStr == null || roleStr.isEmpty()) {
+                throw new IllegalArgumentException("Role is required.");
+            }
+            role = User.Role.valueOf(roleStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            redirectWithError(req, resp, e.getMessage() != null ? e.getMessage() : "Invalid role selected.");
+            return;
+        }
+
         // Validation
-        if (fullName == null || fullName.trim().isEmpty()) {
+        if (role != User.Role.HOSPITAL && (fullName == null || fullName.trim().isEmpty())) {
             redirectWithError(req, resp, "Full name is required.");
             return;
         }
@@ -56,18 +67,17 @@ public class RegisterServlet extends HttpServlet {
         }
 
         try {
-            if (roleStr == null || roleStr.isEmpty()) {
-                throw new IllegalArgumentException("Role is required.");
-            }
-            User.Role role = User.Role.valueOf(roleStr.toUpperCase());
             boolean approved = (role == User.Role.ADMIN);
             User.Status status = approved ? User.Status.ACTIVE : User.Status.INACTIVE;
-            userService.registerUser(fullName.trim(), email.trim(), phone, bloodGroup, password, role, status, approved);
+            String normalizedFullName = fullName != null ? fullName.trim() : null;
+            userService.registerUser(normalizedFullName, email.trim(), phone, bloodGroup, password, role, status, approved);
+
+            String displayName = role == User.Role.HOSPITAL ? "Hospital Account" : normalizedFullName;
 
             Notification notification = new Notification(
                 "NEW_USER",
                 "New user registered",
-                fullName.trim() + " (" + email.trim() + ") registered as " + role.name().toLowerCase(),
+                displayName + " (" + email.trim() + ") registered as " + role.name().toLowerCase(),
                 req.getContextPath() + "/admin/users"
             );
             NotificationService.getInstance().broadcast(notification);
@@ -77,7 +87,7 @@ public class RegisterServlet extends HttpServlet {
                 String welcomeSubject = "Welcome to LifeLink!";
                 String welcomeBody = EmailService.buildHtmlBody(
                     "Welcome to LifeLink",
-                    "Hi " + fullName.trim() + ",<br><br>Your account has been registered successfully as a " + role.name().toLowerCase() + ".<br>Thank you for joining our blood management community.",
+                    "Hi " + displayName + ",<br><br>Your account has been registered successfully as a " + role.name().toLowerCase() + ".<br>Thank you for joining our blood management community.",
                     null, null
                 );
                 EmailService.sendEmail(email.trim(), welcomeSubject, welcomeBody);

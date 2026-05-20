@@ -12,9 +12,6 @@ public class UserService {
                              String phone, String bloodGroup, String password,
                              User.Role role, User.Status status, boolean approved) throws AuthException {
 
-        if (fullName == null || fullName.trim().isEmpty()) {
-            throw new AuthException("Full name is required.");
-        }
         if (email == null || email.trim().isEmpty()) {
             throw new AuthException("Email is required.");
         }
@@ -24,17 +21,27 @@ public class UserService {
         if (role == null) {
             throw new AuthException("Role is required.");
         }
+        if (role != User.Role.HOSPITAL && (fullName == null || fullName.trim().isEmpty())) {
+            throw new AuthException("Full name is required.");
+        }
 
         User existing = userDAO.findByEmail(email.trim());
         if (existing != null) {
             throw new AuthException("A user with this email already exists.");
         }
 
+        String normalizedFullName = role == User.Role.HOSPITAL
+            ? "Hospital Account"
+            : fullName.trim();
+        String normalizedBloodGroup = role == User.Role.HOSPITAL
+            ? null
+            : (bloodGroup != null && !bloodGroup.isEmpty() ? bloodGroup : null);
+
         User user = new User(
-            fullName.trim(),
+            normalizedFullName,
             email.trim().toLowerCase(),
             phone != null && !phone.trim().isEmpty() ? phone.trim() : null,
-            bloodGroup != null && !bloodGroup.isEmpty() ? bloodGroup : null,
+            normalizedBloodGroup,
             PasswordUtil.hash(password),
             role,
             status != null ? status : User.Status.ACTIVE,

@@ -722,6 +722,8 @@
     function setHospitalMode(isHospital) {
         fullNameInput.disabled = isHospital;
         bloodGroupSelect.disabled = isHospital;
+        fullNameInput.required = !isHospital;
+        bloodGroupSelect.required = !isHospital;
         if (isHospital) {
             fullNameInput.value = '';
             bloodGroupSelect.value = '';
