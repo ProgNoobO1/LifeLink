@@ -23,6 +23,12 @@
                     <span>You cannot mark yourself as available yet. Please wait at least 90 days after your last donation.</span>
                 </div>
             </c:if>
+            <c:if test="${param.error == 'cooldown'}">
+                <div class="alert alert-danger" style="background: rgba(217, 4, 41, 0.1); color: var(--active-red); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid rgba(217, 4, 41, 0.2); display: flex; align-items: center; gap: 0.75rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>You cannot accept this request. Please wait until your 90-day safety cooldown period is over.</span>
+                </div>
+            </c:if>
             <c:if test="${param.success == 'accepted'}">
                 <div class="alert alert-success" style="background: rgba(39, 174, 96, 0.1); color: var(--success); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid rgba(39, 174, 96, 0.2); display: flex; align-items: center; gap: 0.75rem;">
                     <i class="fas fa-check-circle"></i>

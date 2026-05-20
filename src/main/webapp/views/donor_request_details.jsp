@@ -114,10 +114,16 @@
                         <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">Your response directly impacts the patient's care. Please decide as soon as possible.</p>
                         
                         <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <c:if test="${not empty cooldownDaysLeft}">
+                                <div class="alert alert-danger" style="background: rgba(217, 4, 41, 0.08); color: var(--active-red); padding: 0.75rem; border-radius: 8px; font-size: 0.8rem; margin-bottom: 0.5rem; border: 1px solid rgba(217, 4, 41, 0.15); display: flex; align-items: center; gap: 0.5rem; line-height: 1.4;">
+                                    <i class="fas fa-history"></i>
+                                    <span>Accepting requests is disabled during your 90-day safety cooldown (<strong>${cooldownDaysLeft} days remaining</strong>).</span>
+                                </div>
+                            </c:if>
                             <form action="${pageContext.request.contextPath}/donor/updateStatus" method="POST">
                                 <input type="hidden" name="requestId" value="${req.id}">
                                 <input type="hidden" name="status" value="Accepted">
-                                <button type="submit" class="btn-premium btn-primary" style="width: 100%; justify-content: center;"><i class="fas fa-check"></i> Accept Request</button>
+                                <button type="submit" class="btn-premium btn-primary" style="width: 100%; justify-content: center; ${not empty cooldownDaysLeft ? 'opacity: 0.5; cursor: not-allowed;' : ''}" ${not empty cooldownDaysLeft ? 'disabled' : ''}><i class="fas fa-check"></i> Accept Request</button>
                             </form>
                             <form action="${pageContext.request.contextPath}/donor/updateStatus" method="POST">
                                 <input type="hidden" name="requestId" value="${req.id}">

@@ -15,7 +15,7 @@
             <div class="notification-dropdown" id="notificationDropdown">
                 <div class="notification-header">
                     <span>Notifications</span>
-                    <span style="font-size: 0.7rem; font-weight: 400; color: var(--active-red); cursor: pointer;">Mark all as read</span>
+                    <span id="markAllRead" style="font-size: 0.7rem; font-weight: 400; color: var(--active-red); cursor: pointer;">Mark all as read</span>
                 </div>
                 <div style="max-height: 400px; overflow-y: auto;">
                     <c:forEach var="n" items="${notifications}">
@@ -122,5 +122,16 @@
     document.addEventListener('click', function() {
         document.getElementById('notificationDropdown').classList.remove('show');
         document.getElementById('userDropdown').classList.remove('show');
+    });
+
+    document.getElementById('markAllRead')?.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const badge = document.querySelector('.bell-badge');
+        if (badge) {
+            badge.style.display = 'none';
+        }
+        document.querySelectorAll('.notification-item').forEach(item => {
+            item.style.opacity = '0.6';
+        });
     });
 </script>

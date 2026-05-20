@@ -80,6 +80,7 @@ public class DonorServlet extends HttpServlet {
         
         Donor donor = donorDAO.getDonorById(donorId);
         List<Notification> notifications = getNotifications(donor, requests);
+        setCooldownAttribute(request, donor);
         request.setAttribute("donor", donor);
         request.setAttribute("req", req);
         request.setAttribute("notifications", notifications);
@@ -176,13 +177,7 @@ public class DonorServlet extends HttpServlet {
         
         List<Notification> notifications = getNotifications(donor, requests);
         
-        if (donor != null && !donor.isAvailable() && donor.getLastDonationDate() != null) {
-            long diffInMillies = Math.abs(System.currentTimeMillis() - donor.getLastDonationDate().getTime());
-            long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
-            if (diffInDays < 90) {
-                request.setAttribute("cooldownDaysLeft", 90 - diffInDays);
-            }
-        }
+        setCooldownAttribute(request, donor);
         
         request.setAttribute("donor", donor);
         request.setAttribute("requests", requests);
@@ -198,6 +193,7 @@ public class DonorServlet extends HttpServlet {
         Donor donor = donorDAO.getDonorById(donorId);
         List<BloodRequest> requests = donorDAO.getRequestsForDonor(donorId);
         List<Notification> notifications = getNotifications(donor, requests);
+        setCooldownAttribute(request, donor);
         request.setAttribute("donor", donor);
         request.setAttribute("requests", requests);
         request.setAttribute("notifications", notifications);
@@ -292,8 +288,20 @@ public class DonorServlet extends HttpServlet {
         
         if (success && status.equals("Accepted")) {
             response.sendRedirect(request.getContextPath() + "/donor/dashboard?success=accepted");
+        } else if (!success && status.equals("Accepted")) {
+            response.sendRedirect(request.getContextPath() + "/donor/dashboard?error=cooldown");
         } else {
             response.sendRedirect(request.getContextPath() + "/donor/dashboard");
+        }
+    }
+
+    private void setCooldownAttribute(HttpServletRequest request, Donor donor) {
+        if (donor != null && donor.getLastDonationDate() != null) {
+            long diffInMillies = Math.abs(System.currentTimeMillis() - donor.getLastDonationDate().getTime());
+            long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+            if (diffInDays < 90) {
+                request.setAttribute("cooldownDaysLeft", 90 - diffInDays);
+            }
         }
     }
 }
