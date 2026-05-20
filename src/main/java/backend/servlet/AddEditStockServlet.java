@@ -1,9 +1,9 @@
-package backend.servlet;
+package lifelink.servlet;
 
-import backend.dao.BloodStockDAO;
-import backend.dao.HospitalDAO;
-import backend.model.BloodStock;
-import backend.model.Hospital;
+import lifelink.dao.BloodStockDAO;
+import lifelink.dao.HospitalDAO;
+import lifelink.model.BloodStock;
+import lifelink.model.Hospital;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -38,7 +38,7 @@ public class AddEditStockServlet extends HttpServlet {
         int hospitalId = getHospitalId(request);
         List<BloodStock> existing = stockDAO.getAllStock(hospitalId);
         request.setAttribute("existingGroups", existing);
-        request.setAttribute("hospital", hospitalDAO.getHospitalByUserId(backend.utils.SessionUtil.getUserId(request)));
+        request.setAttribute("hospital", hospitalDAO.getHospitalByUserId(lifelink.utils.SessionUtil.getUserId(request)));
 
         request.getRequestDispatcher("/views/Hospital/add_edit_stock.jsp")
                .forward(request, response);
@@ -88,7 +88,7 @@ public class AddEditStockServlet extends HttpServlet {
     }
 
     private int getHospitalId(HttpServletRequest request) {
-        int userId = backend.utils.SessionUtil.getUserId(request);
+        int userId = lifelink.utils.SessionUtil.getUserId(request);
         Hospital hospital = hospitalDAO.getHospitalByUserId(userId);
         return hospital != null ? hospital.getId() : -1;
     }

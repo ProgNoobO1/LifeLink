@@ -1,7 +1,7 @@
-package backend.dao;
+package lifelink.dao;
 
-import backend.model.Hospital;
-import backend.utils.DBConnection;
+import lifelink.model.Hospital;
+import lifelink.utils.DBConnection;
 
 import java.sql.*;
 

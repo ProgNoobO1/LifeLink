@@ -1,10 +1,9 @@
-package backend.servlet;
+package lifelink.servlet;
 
-import backend.dao.HospitalDAO;
-import backend.model.Hospital;
+import lifelink.dao.HospitalDAO;
+import lifelink.model.Hospital;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,7 +18,7 @@ public class HospitalProfileServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int userId = backend.utils.SessionUtil.getUserId(request);
+        int userId = lifelink.utils.SessionUtil.getUserId(request);
         Hospital hospital = hospitalDAO.getHospitalByUserId(userId);
 
         if (hospital == null) {
@@ -35,7 +34,7 @@ public class HospitalProfileServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        int userId = backend.utils.SessionUtil.getUserId(request);
+        int userId = lifelink.utils.SessionUtil.getUserId(request);
         
         Hospital hospital = new Hospital();
         hospital.setUserId(userId);

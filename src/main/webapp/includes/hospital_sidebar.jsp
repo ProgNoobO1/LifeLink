@@ -21,12 +21,12 @@
             sessionUserId = Integer.parseInt((String) uidObj);
         }
         if ("hospital".equals(role) && sessionUserId != null) {
-            backend.dao.BloodRequestDAO requestDAO = new backend.dao.BloodRequestDAO();
+            lifelink.dao.BloodRequestDAO requestDAO = new lifelink.dao.BloodRequestDAO();
             pendingCount = requestDAO.getPendingCount(sessionUserId);
             
             // Fetch live hospital name directly from database to prevent session sync delay
-            backend.dao.HospitalDAO sidebarDAO = new backend.dao.HospitalDAO();
-            backend.model.Hospital sidebarHosp = sidebarDAO.getHospitalByUserId(sessionUserId);
+            lifelink.dao.HospitalDAO sidebarDAO = new lifelink.dao.HospitalDAO();
+            lifelink.model.Hospital sidebarHosp = sidebarDAO.getHospitalByUserId(sessionUserId);
             if (sidebarHosp != null && sidebarHosp.getHospitalName() != null && !sidebarHosp.getHospitalName().trim().isEmpty()) {
                 fullName = sidebarHosp.getHospitalName();
             }

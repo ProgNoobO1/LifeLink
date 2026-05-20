@@ -1,4 +1,4 @@
-package backend.utils;
+package lifelink.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

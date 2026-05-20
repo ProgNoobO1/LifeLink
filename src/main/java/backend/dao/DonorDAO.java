@@ -1,7 +1,7 @@
-package backend.dao;
+package lifelink.dao;
 
-import backend.model.DonorSearchDTO;
-import backend.utils.DBConnection;
+import lifelink.model.DonorSearchDTO;
+import lifelink.utils.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;

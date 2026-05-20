@@ -1,4 +1,4 @@
-package backend.model;
+package lifelink.model;
 
 import java.sql.Timestamp;
 

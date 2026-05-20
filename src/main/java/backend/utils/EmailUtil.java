@@ -1,4 +1,4 @@
-package backend.utils;
+package lifelink.utils;
 
 import jakarta.mail.*;
 import jakarta.mail.internet.*;

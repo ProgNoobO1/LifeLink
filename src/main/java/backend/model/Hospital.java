@@ -1,4 +1,4 @@
-package backend.model;
+package lifelink.model;
 
 public class Hospital {
     private int id; // We will map user_id to this to avoid breaking other code

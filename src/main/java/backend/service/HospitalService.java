@@ -1,10 +1,9 @@
-package backend.service;
+package lifelink.service;
 
-import backend.dao.BloodRequestDAO;
-import backend.dao.BloodStockDAO;
-import backend.dao.HospitalDAO;
-import backend.model.BloodRequest;
-import backend.model.BloodStock;
+import lifelink.dao.BloodRequestDAO;
+import lifelink.dao.BloodStockDAO;
+import lifelink.dao.HospitalDAO;
+import lifelink.model.BloodRequest;
 
 import java.util.HashMap;
 import java.util.List;

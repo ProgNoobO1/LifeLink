@@ -1,8 +1,8 @@
-package backend.dao;
+package lifelink.dao;
 
-import backend.model.BloodRequest;
-import backend.model.UsageHistory;
-import backend.utils.DBConnection;
+import lifelink.model.BloodRequest;
+import lifelink.model.UsageHistory;
+import lifelink.utils.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;

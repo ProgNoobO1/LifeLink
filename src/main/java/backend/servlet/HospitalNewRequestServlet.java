@@ -1,11 +1,11 @@
-package backend.servlet;
+package lifelink.servlet;
 
 /* INTEGRATION POINT: Member 2 (Donor) provides Donor models and DAO
 import backend.dao.DonorDAO;
 import backend.model.Donor;
 */
-import backend.dao.HospitalDAO;
-import backend.model.Hospital;
+import lifelink.dao.HospitalDAO;
+import lifelink.model.Hospital;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -30,12 +30,12 @@ public class HospitalNewRequestServlet extends HttpServlet {
         Hospital hospital = hospitalDAO.getHospitalByUserId(userId);
         req.setAttribute("hospital", hospital);
 
-        backend.dao.DonorDAO donorDAO = new backend.dao.DonorDAO();
+        lifelink.dao.DonorDAO donorDAO = new lifelink.dao.DonorDAO();
         String bloodGroup = req.getParameter("bloodGroup");
         String district = req.getParameter("district");
 
         if (bloodGroup != null && !bloodGroup.isBlank()) {
-            List<backend.model.DonorSearchDTO> donors = donorDAO.searchDonors(bloodGroup, district);
+            List<lifelink.model.DonorSearchDTO> donors = donorDAO.searchDonors(bloodGroup, district);
             req.setAttribute("donors", donors);
             req.setAttribute("searchBloodGroup", bloodGroup);
             req.setAttribute("searchDistrict", district);

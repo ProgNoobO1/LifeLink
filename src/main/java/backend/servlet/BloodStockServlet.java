@@ -1,12 +1,11 @@
-package backend.servlet;
+package lifelink.servlet;
 
-import backend.dao.BloodStockDAO;
-import backend.dao.HospitalDAO;
-import backend.model.BloodStock;
-import backend.model.Hospital;
+import lifelink.dao.BloodStockDAO;
+import lifelink.dao.HospitalDAO;
+import lifelink.model.BloodStock;
+import lifelink.model.Hospital;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

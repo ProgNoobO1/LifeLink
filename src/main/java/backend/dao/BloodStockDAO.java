@@ -1,7 +1,7 @@
-package backend.dao;
+package lifelink.dao;
 
-import backend.model.BloodStock;
-import backend.utils.DBConnection;
+import lifelink.model.BloodStock;
+import lifelink.utils.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;

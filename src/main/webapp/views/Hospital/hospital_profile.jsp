@@ -134,7 +134,7 @@
                                        {"Karnali Province", "Dailekh", "Dolpa", "Humla", "Jajarkot", "Jumla", "Kalikot", "Mugu", "Salyan", "Surkhet", "Western Rukum"},
                                        {"Sudurpashchim Province", "Achham", "Baitadi", "Bajhang", "Bajura", "Dadeldhura", "Darchula", "Doti", "Kailali", "Kanchanpur"}
                                    };
-                                   backend.model.Hospital h = (backend.model.Hospital) request.getAttribute("hospital");
+                                   lifelink.model.Hospital h = (lifelink.model.Hospital) request.getAttribute("hospital");
                                    int selectedId = h != null ? h.getDistrictId() : 0;
                                    int distId = 1;
                                    for (String[] province : provinces) {

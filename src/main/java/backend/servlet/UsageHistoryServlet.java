@@ -1,9 +1,9 @@
-package backend.servlet;
+package lifelink.servlet;
 
-import backend.dao.BloodRequestDAO;
-import backend.dao.HospitalDAO;
-import backend.model.Hospital;
-import backend.model.UsageHistory;
+import lifelink.dao.BloodRequestDAO;
+import lifelink.dao.HospitalDAO;
+import lifelink.model.Hospital;
+import lifelink.model.UsageHistory;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

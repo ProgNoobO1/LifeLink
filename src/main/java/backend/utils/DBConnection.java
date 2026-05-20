@@ -1,4 +1,4 @@
-package backend.utils;
+package lifelink.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
