@@ -11,6 +11,12 @@ public class District {
 
     public District() {}
 
+    public District(int id, String name, String province) {
+        this.id = id;
+        this.name = name;
+        this.province = province;
+    }
+
     public District(String name, String province, BigDecimal latitude, BigDecimal longitude) {
         this.name = name;
         this.province = province;

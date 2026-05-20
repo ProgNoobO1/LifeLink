@@ -10,8 +10,22 @@ public class Notification {
     private String link;
     private boolean read;
     private LocalDateTime createdAt;
+    
+    // HEAD specific fields
+    private String icon;
+    private String time;
 
     public Notification() {}
+
+    public static Notification createDonorNotification(String type, String message, String icon, String time) {
+        Notification n = new Notification();
+        n.type = type;
+        n.message = message;
+        n.icon = icon;
+        n.time = time;
+        n.createdAt = LocalDateTime.now();
+        return n;
+    }
 
     public Notification(String type, String title, String message, String link) {
         this.type = type;
@@ -42,4 +56,10 @@ public class Notification {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getIcon() { return icon; }
+    public void setIcon(String icon) { this.icon = icon; }
+
+    public String getTime() { return time; }
+    public void setTime(String time) { this.time = time; }
 }

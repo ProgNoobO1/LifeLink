@@ -37,6 +37,3 @@ build/
 
 ### Mac OS ###
 .DS_Store
-# Local secrets (never commit)
-email.properties
-
