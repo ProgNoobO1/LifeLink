@@ -1,48 +1,52 @@
 package com.lifelink.utils;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    private static final String DB_URL_3306 = "jdbc:mysql://localhost:3306/lifelink_db";
-    private static final String DB_URL_3307 = "jdbc:mysql://localhost:3307/lifelink_db";
-    private static final String DB_USER = "root";
-    private static final String DB_PASSWORD = "Smita@123";
+    private static final HikariDataSource dataSource;
 
-    public static Connection getConnection() throws SQLException {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("MySQL JDBC Driver not found", e);
-        }
+    private static final String DB_URL  = System.getenv().getOrDefault("DB_URL",  "jdbc:mysql://localhost:3306/lifelink_db?useSSL=false&serverTimezone=UTC");
+    private static final String DB_USER = System.getenv().getOrDefault("DB_USER", "root");
+    private static final String DB_PASS = System.getenv().getOrDefault("DB_PASS", "your_new_password");
 
-        // 1. Try 3306 with password
+    static {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(DB_URL);
+        config.setUsername(DB_USER);
+        config.setPassword(DB_PASS);
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+
+        // Pool settings
+        config.setMinimumIdle(5);
+        config.setMaximumPoolSize(20);
+        config.setConnectionTimeout(30000);
+        config.setIdleTimeout(300000);
+        config.setMaxLifetime(1800000);
+        config.setPoolName("LifeLinkPool");
+
+        dataSource = new HikariDataSource(config);
+    }
+
+    private DBConnection() {
+        // utility class
+    }
+
+    public static Connection getConnection() {
         try {
-            return DriverManager.getConnection(DB_URL_3306, DB_USER, DB_PASSWORD);
-        } catch (SQLException e1) {
-            // 2. Try 3306 passwordless
-            try {
-                return DriverManager.getConnection(DB_URL_3306, DB_USER, "");
-            } catch (SQLException e2) {
-                // 3. Try 3307 with password
-                try {
-                    return DriverManager.getConnection(DB_URL_3307, DB_USER, DB_PASSWORD);
-                } catch (SQLException e3) {
-                    // 4. Try 3307 passwordless
-                    try {
-                        return DriverManager.getConnection(DB_URL_3307, DB_USER, "");
-                    } catch (SQLException e4) {
-                        System.err.println("[DBConnection] Failed to connect to port 3306 and 3307.");
-                        throw e4;
-                    }
-                }
-            }
+            return dataSource.getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException("❌ Database Connection Failed!", e);
         }
     }
 
     public static void close() {
-        // Fallback for Recipient branch calling close
-        System.out.println("Connection close called.");
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+            System.out.println("✅ Connection pool closed.");
+        }
     }
 }
