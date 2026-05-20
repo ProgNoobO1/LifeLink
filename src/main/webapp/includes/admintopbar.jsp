@@ -4,6 +4,8 @@
 <%@ page import="com.lifelink.model.User" %>
 <%@ page import="com.lifelink.dao.BloodRequestDAO" %>
 <%@ page import="com.lifelink.model.BloodRequest" %>
+<%@ page import="com.lifelink.dao.NotificationDAO" %>
+<%@ page import="com.lifelink.model.Notification" %>
 <%@ page import="java.util.List" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
@@ -15,6 +17,11 @@
     BloodRequestDAO notifRequestDAO = new BloodRequestDAO();
     long notifPendingCount = notifRequestDAO.countByStatus(BloodRequest.Status.PENDING);
     List<BloodRequest> notifPendingRequests = notifRequestDAO.findByStatus(BloodRequest.Status.PENDING);
+
+    NotificationDAO notifDAO = new NotificationDAO();
+    List<Notification> unreadNotifications = notifDAO.findUnread();
+    long unreadNotifCount = notifDAO.countUnread();
+    long totalBadgeCount = notifPendingCount + unreadNotifCount;
 %>
 <style>
 
@@ -35,40 +42,7 @@
   .topbar-title h1 { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); }
   .topbar-title p  { font-size: .8rem; color: var(--text-mid); margin-top: .1rem; }
 
-  .topbar-search {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .topbar-search svg {
-    position: absolute;
-    left: .8rem;
-    width: 16px; height: 16px;
-    fill: none;
-    stroke: var(--text-light);
-    stroke-width: 2;
-  }
-
-  .topbar-search input {
-    padding: .5rem 1rem .5rem 2.3rem;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: .85rem;
-    background: #fafafa;
-    color: var(--text-dark);
-    outline: none;
-    width: 200px;
-    transition: border-color .2s, box-shadow .2s;
-  }
-
-  .topbar-search input:focus {
-    border-color: var(--red);
-    box-shadow: 0 0 0 3px var(--red-light);
-  }
-
-  .topbar-actions { display: flex; align-items: center; gap: .75rem; }
+  .topbar-actions { display: flex; align-items: center; gap: .75rem; margin-left: auto; }
 
   /* NOTIFICATION */
   .notif-wrap { position: relative; }
@@ -271,9 +245,82 @@
 
   .ud-item.logout { color: var(--red); }
   .ud-item.logout:hover { background: var(--red-light); }
+
+  /* MOBILE RESPONSIVE */
+  @media (max-width: 1024px) {
+    .topbar { padding: .75rem 1rem; gap: .5rem; flex-wrap: wrap; }
+    .topbar-title h1 { font-size: 1rem; }
+    .topbar-title p { display: none; }
+    .topbar-user .uname, .topbar-user .uemail { display: none; }
+  }
+  .hamburger {
+    display: none;
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    border: 1.5px solid var(--border);
+    background: #fafafa;
+    align-items: center; justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .hamburger svg { width: 18px; height: 18px; fill: none; stroke: var(--text-mid); stroke-width: 2; }
+  @media (max-width: 1024px) {
+    .hamburger { display: flex; }
+  }
+
+  /* TOAST NOTIFICATION */
+  .toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    padding: .85rem 1.1rem;
+    min-width: 280px;
+    max-width: 340px;
+    display: flex;
+    align-items: flex-start;
+    gap: .7rem;
+    animation: toastSlideIn .35s ease forwards;
+    pointer-events: auto;
+  }
+  @keyframes toastSlideIn {
+    from { opacity: 0; transform: translateX(40px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .toast.leaving {
+    animation: toastSlideOut .3s ease forwards;
+  }
+  @keyframes toastSlideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(40px); }
+  }
+  .toast-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--red-light);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .toast-icon svg { width: 16px; height: 16px; fill: var(--red); }
+  .toast-body { flex: 1; min-width: 0; }
+  .toast-title { font-size: .85rem; font-weight: 700; color: var(--text-dark); }
+  .toast-msg { font-size: .78rem; color: var(--text-mid); margin-top: .1rem; }
 </style>
 <!-- TOP BAR -->
 <header class="topbar">
+  <button type="button" class="hamburger" onclick="toggleSidebar()" aria-label="Open menu">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
   <%
       String topUri = request.getRequestURI();
       String topForwardUri = (String) request.getAttribute("jakarta.servlet.forward.request_uri");
@@ -296,19 +343,16 @@
     <p><%= pageSubtitle %></p>
   </div>
 
-  <form class="topbar-search" method="get" action="<%= request.getContextPath() %><%= (topUri != null && topUri.contains("/admin/requests")) ? "/admin/requests" : "/admin/dashboard" %>">
-    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" name="search" placeholder="<%= (topUri != null && topUri.contains("/admin/requests")) ? "Search requests..." : "Search..." %>" value="<%= request.getParameter("search") != null ? request.getParameter("search") : "" %>"/>
-  </form>
-
   <div class="topbar-actions">
 
     <!-- NOTIFICATIONS -->
     <div class="notif-wrap">
       <div class="notif-btn" onclick="document.getElementById('notifDropdown').classList.toggle('show')">
         <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-        <% if (notifPendingCount > 0) { %>
-        <span class="notif-dot"><%= notifPendingCount > 99 ? "99+" : notifPendingCount %></span>
+        <% if (totalBadgeCount > 0) { %>
+        <span class="notif-dot" id="notifBadge"><%= totalBadgeCount > 99 ? "99+" : totalBadgeCount %></span>
+        <% } else { %>
+        <span class="notif-dot" id="notifBadge" style="display:none;"></span>
         <% } %>
       </div>
       <div class="notif-dropdown" id="notifDropdown">
@@ -318,7 +362,21 @@
           <a href="<%= request.getContextPath() %>/admin/requests?status=PENDING"><%= notifPendingCount %> pending</a>
           <% } %>
         </div>
-        <div class="notif-list">
+        <div class="notif-list" id="notifList">
+          <% if (unreadNotifications != null && !unreadNotifications.isEmpty()) { %>
+            <% for (Notification n : unreadNotifications) { %>
+            <a href="<%= n.getLink() != null ? n.getLink() : request.getContextPath() + "/admin/dashboard" %>" class="notif-item" data-notif-id="<%= n.getId() %>">
+              <div class="notif-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C12 2 4 10 4 15a8 8 0 0016 0C20 10 12 2 12 2z"/></svg>
+              </div>
+              <div class="notif-body">
+                <div class="notif-title"><%= n.getTitle() %></div>
+                <div class="notif-desc"><%= n.getMessage() != null ? n.getMessage() : "" %></div>
+                <div class="notif-time"><%= n.getCreatedAt().toLocalDate().toString() + " " + n.getCreatedAt().toLocalTime().toString().substring(0,5) %></div>
+              </div>
+            </a>
+            <% } %>
+          <% } %>
           <% if (notifPendingRequests != null && !notifPendingRequests.isEmpty()) { %>
             <% for (BloodRequest reqItem : notifPendingRequests) { %>
             <a href="<%= request.getContextPath() %>/admin/requests/action?id=<%= reqItem.getId() %>" class="notif-item">
@@ -332,8 +390,9 @@
               </div>
             </a>
             <% } %>
-          <% } else { %>
-            <div class="notif-empty">No pending requests</div>
+          <% } %>
+          <% if ((unreadNotifications == null || unreadNotifications.isEmpty()) && (notifPendingRequests == null || notifPendingRequests.isEmpty())) { %>
+            <div class="notif-empty" id="notifEmpty">No notifications</div>
           <% } %>
         </div>
         <div class="notif-footer">
@@ -353,10 +412,6 @@
         <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="user-dropdown" id="userDropdown">
-        <a href="<%= request.getContextPath() %>/admin/users/view?id=<%= currentAdmin != null ? currentAdmin.getId() : "" %>" class="ud-item">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Profile
-        </a>
         <div class="ud-divider"></div>
         <a href="<%= request.getContextPath() %>/logout" class="ud-item logout">
           <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -367,6 +422,9 @@
 
   </div>
 </header>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
 
 <script>
   document.addEventListener('click', function(e) {
@@ -382,4 +440,87 @@
       notifDropdown.classList.remove('show');
     }
   });
+
+  // Real-time notifications via SSE
+  (function() {
+    const ctx = '<%= request.getContextPath() %>';
+    const evtSource = new EventSource(ctx + '/admin/notifications/stream');
+
+    evtSource.onmessage = function(event) {
+      if (!event.data || event.data.trim() === '') return;
+      try {
+        const data = JSON.parse(event.data);
+        prependNotification(data);
+        showToast(data.title, data.message);
+        updateBadge(+1);
+      } catch (e) {
+        console.error('Invalid SSE data', e);
+      }
+    };
+
+    evtSource.onerror = function(err) {
+      console.warn('SSE connection error, retrying...', err);
+    };
+
+    function prependNotification(data) {
+      const list = document.getElementById('notifList');
+      if (!list) return;
+      const empty = document.getElementById('notifEmpty');
+      if (empty) empty.remove();
+
+      const item = document.createElement('a');
+      item.href = data.link || (ctx + '/admin/dashboard');
+      item.className = 'notif-item';
+      item.innerHTML =
+        '<div class="notif-icon">' +
+          '<svg viewBox="0 0 24 24"><path d="M12 2C12 2 4 10 4 15a8 8 0 0016 0C20 10 12 2 12 2z"/></svg>' +
+        '</div>' +
+        '<div class="notif-body">' +
+          '<div class="notif-title">' + escapeHtml(data.title) + '</div>' +
+          '<div class="notif-desc">' + escapeHtml(data.message || '') + '</div>' +
+          '<div class="notif-time">Just now</div>' +
+        '</div>';
+      list.insertBefore(item, list.firstChild);
+    }
+
+    function updateBadge(delta) {
+      const badge = document.getElementById('notifBadge');
+      if (!badge) return;
+      let count = parseInt(badge.textContent) || 0;
+      count += delta;
+      if (count <= 0) {
+        badge.style.display = 'none';
+        badge.textContent = '';
+      } else {
+        badge.style.display = 'flex';
+        badge.textContent = count > 99 ? '99+' : count;
+      }
+    }
+
+    function showToast(title, message) {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML =
+        '<div class="toast-icon">' +
+          '<svg viewBox="0 0 24 24"><path d="M12 2C12 2 4 10 4 15a8 8 0 0016 0C20 10 12 2 12 2z"/></svg>' +
+        '</div>' +
+        '<div class="toast-body">' +
+          '<div class="toast-title">' + escapeHtml(title) + '</div>' +
+          '<div class="toast-msg">' + escapeHtml(message || '') + '</div>' +
+        '</div>';
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('leaving');
+        setTimeout(() => toast.remove(), 350);
+      }, 4500);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  })();
 </script>

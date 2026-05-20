@@ -10,7 +10,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Manage Requests – LifeLink</title>
+    <title>Registration Approvals – LifeLink</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 
     <style>
@@ -427,6 +427,22 @@
         .stats-row .stat-card:nth-child(4) { animation: fadeUp .4s ease .26s both; }
         .filters-row { animation: fadeUp .4s ease .3s both; }
         .requests-card { animation: fadeUp .4s ease .4s both; }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .main { margin-left: 0; }
+            .content { padding: 1.25rem 1rem; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .filters-row { gap: 1rem; }
+            .btn-export { margin-left: 0; width: 100%; justify-content: center; }
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: 1fr; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            .card-head { flex-direction: column; align-items: flex-start; gap: .5rem; }
+            .actions { flex-wrap: nowrap; }
+            .card-footer { flex-direction: column; gap: 1rem; align-items: flex-start; }
+        }
     </style>
 </head>
 <body>
@@ -457,7 +473,7 @@
                 </div>
                 <div class="stat-info">
                     <div class="stat-num">${totalRequests}</div>
-                    <div class="stat-label">Total Requests</div>
+                    <div class="stat-label">Total Users</div>
                 </div>
             </div>
 
@@ -511,35 +527,17 @@
                 </div>
             </div>
 
-            <div class="filter-divider"></div>
+            
 
-            <div class="filter-group">
-                <span class="filter-label">Blood Group</span>
-                <div class="filter-pills">
-                    <a href="${pageContext.request.contextPath}/admin/requests" class="pill ${activeBloodGroup == 'all' ? 'active' : ''}">All</a>
-                    <a href="${pageContext.request.contextPath}/admin/requests?bg=A%2B" class="pill ${activeBloodGroup == 'A+' ? 'active' : ''}">A+</a>
-                    <a href="${pageContext.request.contextPath}/admin/requests?bg=A-" class="pill ${activeBloodGroup == 'A-' ? 'active' : ''}">A-</a>
-                    <a href="${pageContext.request.contextPath}/admin/requests?bg=B%2B" class="pill ${activeBloodGroup == 'B+' ? 'active' : ''}">B+</a>
-                    <a href="${pageContext.request.contextPath}/admin/requests?bg=B-" class="pill ${activeBloodGroup == 'B-' ? 'active' : ''}">B-</a>
-                    <a href="${pageContext.request.contextPath}/admin/requests?bg=O%2B" class="pill ${activeBloodGroup == 'O+' ? 'active' : ''}">O+</a>
-                    <a href="${pageContext.request.contextPath}/admin/requests?bg=O-" class="pill ${activeBloodGroup == 'O-' ? 'active' : ''}">O-</a>
-                    <a href="${pageContext.request.contextPath}/admin/requests?bg=AB%2B" class="pill ${activeBloodGroup == 'AB+' ? 'active' : ''}">AB+</a>
-                    <a href="${pageContext.request.contextPath}/admin/requests?bg=AB-" class="pill ${activeBloodGroup == 'AB-' ? 'active' : ''}">AB-</a>
-                </div>
-            </div>
 
-            <a href="${pageContext.request.contextPath}/admin/requests/export" class="btn-export" style="text-decoration:none;">
-                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Export CSV
-            </a>
         </div><!-- /filters-row -->
 
         <!-- REQUESTS TABLE -->
         <div class="card requests-card">
             <div class="card-head">
                 <div>
-                    <h3>All Requests</h3>
-                    <p>Showing ${totalRequests} total requests</p>
+                    <h3>All Registrations</h3>
+                    <p>Showing ${totalRequests} total registrations</p>
                 </div>
                 <div class="sort-dropdown">
                     <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
@@ -558,71 +556,83 @@
             <table>
                 <thead>
                 <tr>
-                    <th>Request ID</th>
-                    <th>Requester</th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Role</th>
                     <th>Blood Group</th>
-                    <th>Units</th>
-                    <th>Date</th>
+                    <th>Phone</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                <c:forEach items="${requests}" var="req">
+                <c:forEach items="${requests}" var="u">
                 <tr>
-                    <td><span class="req-id">${req.formattedRequestId}</span></td>
+                    <td><span class="req-id">#${u.id}</span></td>
                     <td>
                         <div class="requester">
-                            <div class="requester-avatar">${req.initials}</div>
+                            <div class="requester-avatar">${u.initials}</div>
                             <div class="requester-info">
-                                <span class="requester-name">${req.requesterName}</span>
-                                <span class="requester-email">${req.requesterEmail}</span>
+                                <span class="requester-name">${u.fullName}</span>
+                                <span class="requester-email">${u.email}</span>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <c:choose>
-                            <c:when test="${req.bloodGroup == 'A+'}"><span class="blood-badge bg-red">A+</span></c:when>
-                            <c:when test="${req.bloodGroup == 'A-'}"><span class="blood-badge bg-blue">A-</span></c:when>
-                            <c:when test="${req.bloodGroup == 'B+'}"><span class="blood-badge bg-purple">B+</span></c:when>
-                            <c:when test="${req.bloodGroup == 'B-'}"><span class="blood-badge bg-orange">B-</span></c:when>
-                            <c:when test="${req.bloodGroup == 'O+'}"><span class="blood-badge bg-green">O+</span></c:when>
-                            <c:when test="${req.bloodGroup == 'O-'}"><span class="blood-badge bg-blue">O-</span></c:when>
-                            <c:when test="${req.bloodGroup == 'AB+'}"><span class="blood-badge bg-red">AB+</span></c:when>
-                            <c:when test="${req.bloodGroup == 'AB-'}"><span class="blood-badge bg-teal">AB-</span></c:when>
-                            <c:otherwise><span class="blood-badge bg-red">${req.bloodGroup}</span></c:otherwise>
-                        </c:choose>
+                        <span class="status-pill ${u.role == 'ADMIN' ? 'approved' : (u.role == 'DONOR' ? 'pending' : 'rejected')}">
+                            ${u.role}
+                        </span>
                     </td>
-                    <td>${req.units} unit${req.units > 1 ? 's' : ''}</td>
-                    <td>${req.formattedDate}</td>
                     <td>
                         <c:choose>
-                            <c:when test="${req.status == 'PENDING'}">
-                                <span class="status-pill pending">Pending</span>
-                            </c:when>
-                            <c:when test="${req.status == 'APPROVED'}">
-                                <span class="status-pill approved">Approved</span>
-                            </c:when>
-                            <c:when test="${req.status == 'REJECTED'}">
+                            <c:when test="${u.bloodGroup == 'A+'}"><span class="blood-badge bg-red">A+</span></c:when>
+                            <c:when test="${u.bloodGroup == 'A-'}"><span class="blood-badge bg-blue">A-</span></c:when>
+                            <c:when test="${u.bloodGroup == 'B+'}"><span class="blood-badge bg-purple">B+</span></c:when>
+                            <c:when test="${u.bloodGroup == 'B-'}"><span class="blood-badge bg-orange">B-</span></c:when>
+                            <c:when test="${u.bloodGroup == 'O+'}"><span class="blood-badge bg-green">O+</span></c:when>
+                            <c:when test="${u.bloodGroup == 'O-'}"><span class="blood-badge bg-blue">O-</span></c:when>
+                            <c:when test="${u.bloodGroup == 'AB+'}"><span class="blood-badge bg-red">AB+</span></c:when>
+                            <c:when test="${u.bloodGroup == 'AB-'}"><span class="blood-badge bg-teal">AB-</span></c:when>
+                            <c:otherwise><span class="blood-badge bg-red">${u.bloodGroup}</span></c:otherwise>
+                        </c:choose>
+                    </td>
+                    <td>${u.phone}</td>
+                    <td>
+                        <c:choose>
+                            <c:when test="${u.status == 'SUSPENDED'}">
                                 <span class="status-pill rejected">Rejected</span>
                             </c:when>
+                            <c:when test="${u.status == 'ACTIVE'}">
+                                <span class="status-pill approved">Approved</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="status-pill pending">Inactive</span>
+                            </c:otherwise>
                         </c:choose>
                     </td>
                     <td>
                         <div class="actions">
                             <c:choose>
-                                <c:when test="${req.status == 'PENDING'}">
-                                    <form method="post" action="${pageContext.request.contextPath}/admin/requests/action" style="display:inline;">
-                                        <input type="hidden" name="id" value="${req.id}"/>
-                                        <input type="hidden" name="action" value="approve"/>
+                                <c:when test="${u.status == 'SUSPENDED'}">
+                                    <button class="action-btn approve-btn disabled" disabled>
+                                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                                        Approve
+                                    </button>
+                                    <button class="action-btn reject-btn disabled" disabled>
+                                        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                                        Rejected
+                                    </button>
+                                </c:when>
+                                <c:when test="${!u.approved}">
+                                    <form method="post" action="${pageContext.request.contextPath}/admin/users/approve" style="display:inline;">
+                                        <input type="hidden" name="id" value="${u.id}"/>
                                         <button type="submit" class="action-btn approve-btn">
                                             <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
                                             Approve
                                         </button>
                                     </form>
-                                    <form method="post" action="${pageContext.request.contextPath}/admin/requests/action" style="display:inline;">
-                                        <input type="hidden" name="id" value="${req.id}"/>
-                                        <input type="hidden" name="action" value="reject"/>
+                                    <form method="post" action="${pageContext.request.contextPath}/admin/users/reject" style="display:inline;" onsubmit="return confirm('Reject this registration?');">
+                                        <input type="hidden" name="id" value="${u.id}"/>
                                         <button type="submit" class="action-btn reject-btn">
                                             <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
                                             Reject
@@ -640,7 +650,7 @@
                                     </button>
                                 </c:otherwise>
                             </c:choose>
-                            <a href="${pageContext.request.contextPath}/admin/requests/action?id=${req.id}" class="action-btn view-btn">
+                            <a href="${pageContext.request.contextPath}/admin/requests/action?id=${u.id}" class="action-btn view-btn">
                                 <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                                 View
                             </a>
@@ -650,14 +660,14 @@
                 </c:forEach>
                 <c:if test="${empty requests}">
                 <tr>
-                    <td colspan="7" style="text-align:center; color:var(--text-light); padding:2rem;">No requests found</td>
+                    <td colspan="7" style="text-align:center; color:var(--text-light); padding:2rem;">No registrations found</td>
                 </tr>
                 </c:if>
                 </tbody>
             </table>
 
             <div class="card-footer">
-                <span class="showing-text">Showing ${showingStart}–${showingEnd} of ${filteredTotal} requests</span>
+                <span class="showing-text">Showing ${showingStart}–${showingEnd} of ${filteredTotal} registrations</span>
                 <div class="pagination">
                     <c:choose>
                         <c:when test="${currentPage > 1}">
@@ -695,5 +705,12 @@
     </div><!-- /content -->
 </div><!-- /main -->
 
+  <script>
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+  </script>
 </body>
 </html>

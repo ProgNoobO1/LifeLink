@@ -27,7 +27,7 @@ public class AdminReportsServlet extends HttpServlet {
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }
@@ -40,16 +40,22 @@ public class AdminReportsServlet extends HttpServlet {
         LocalDate toDate = LocalDate.now();
         LocalDate fromDate;
 
-        if (fromDateStr != null && !fromDateStr.isEmpty() && toDateStr != null && !toDateStr.isEmpty()) {
-            fromDate = LocalDate.parse(fromDateStr, DATE_FMT);
-            toDate = LocalDate.parse(toDateStr, DATE_FMT);
-        } else if ("3months".equals(period)) {
-            fromDate = toDate.minusMonths(3);
-        } else if ("year".equals(period)) {
-            fromDate = toDate.minusYears(1);
-        } else {
-            // Default: this month
+        try {
+            if (fromDateStr != null && !fromDateStr.isEmpty() && toDateStr != null && !toDateStr.isEmpty()) {
+                fromDate = LocalDate.parse(fromDateStr, DATE_FMT);
+                toDate = LocalDate.parse(toDateStr, DATE_FMT);
+            } else if ("3months".equals(period)) {
+                fromDate = toDate.minusMonths(3);
+            } else if ("year".equals(period)) {
+                fromDate = toDate.minusYears(1);
+            } else {
+                // Default: this month
+                fromDate = toDate.withDayOfMonth(1);
+            }
+        } catch (java.time.format.DateTimeParseException e) {
+            req.setAttribute("error", "Invalid date format. Please use yyyy-MM-dd.");
             fromDate = toDate.withDayOfMonth(1);
+            toDate = LocalDate.now();
         }
 
         // Chart data

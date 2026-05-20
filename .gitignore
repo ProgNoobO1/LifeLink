@@ -38,6 +38,9 @@ build/
 ### Mac OS ###
 .DS_Store
 
-### Claude & AI Settings ###
+### AI Settings ###
 .claude/
 .gemini/
+
+### Local secrets ###
+email.properties

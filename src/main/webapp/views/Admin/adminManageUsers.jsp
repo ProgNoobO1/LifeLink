@@ -329,6 +329,8 @@
     .act-edit svg { fill: #d97706; }
     .act-delete { background: #fee2e2; }
     .act-delete svg { fill: var(--red); }
+    .act-approve { background: #d1fae5; }
+    .act-approve svg { fill: #059669; }
 
     .pagination-row {
       display: flex;
@@ -459,6 +461,22 @@
 
     .stat-strip { animation: fadeUp .35s ease .05s both; }
     .card       { animation: fadeUp .35s ease .15s both; }
+
+    /* RESPONSIVE */
+    @media (max-width: 1024px) {
+      .main { margin-left: 0; }
+      .content { padding: 1.25rem 1rem; }
+      .stat-strip { grid-template-columns: repeat(2, 1fr); }
+      .card-head { flex-wrap: wrap; gap: .75rem; }
+      .table-search { width: 100%; }
+      .table-search input { width: 100%; }
+    }
+    @media (max-width: 768px) {
+      .stat-strip { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+      .modal-content { margin: 1rem; max-height: 80vh; }
+      .password-row { flex-direction: column; }
+    }
   </style>
 </head>
 <body>
@@ -541,12 +559,6 @@
           <input type="text" id="userSearch" placeholder="Search users..." oninput="filterTable()"/>
         </div>
 
-        <button class="btn-filter">
-          <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-          Filter
-          <svg viewBox="0 0 24 24" style="width:12px;height:12px;"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-
         <button class="btn-add" type="button" onclick="openAddUserModal()">
           <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
           Add New User
@@ -557,7 +569,6 @@
       <table id="userTable">
         <thead>
         <tr>
-          <th><input type="checkbox" id="selectAll" onchange="toggleAll(this)"/></th>
           <th>Name</th>
           <th>Email</th>
           <th>Role</th>
@@ -577,7 +588,6 @@
           <c:otherwise>
             <c:forEach items="${users}" var="user" varStatus="loop">
               <tr>
-                <td><input type="checkbox" class="row-cb"/></td>
                 <td>
                   <div class="user-cell">
                     <div class="user-thumb" style="background:
@@ -587,10 +597,10 @@
                         <c:when test="${user.role == 'HOSPITAL'}">#ede9fe;color:#7c3aed;</c:when>
                         <c:otherwise>#fef3c7;color:#d97706;</c:otherwise>
                       </c:choose>">
-                      ${fn:substring(user.firstName, 0, 1)}${fn:substring(user.lastName, 0, 1)}
+                      ${user.initials}
                     </div>
                     <div class="user-cell-info">
-                      <div class="uname">${user.firstName} ${user.lastName}</div>
+                      <div class="uname">${user.fullName}</div>
                       <div class="uid">ID: #USR-${user.id}</div>
                     </div>
                   </div>
@@ -643,7 +653,7 @@
                       <span class="status-pill status-inactive">Inactive</span>
                     </c:when>
                     <c:otherwise>
-                      <span class="status-pill status-suspended">Suspended</span>
+                      <span class="status-pill status-suspended">Rejected</span>
                     </c:otherwise>
                   </c:choose>
                 </td>
@@ -729,12 +739,8 @@
     </div>
     <form id="addUserForm" action="${pageContext.request.contextPath}/admin/users/add" method="post">
       <div class="form-group">
-        <label>First Name</label>
-        <input type="text" name="firstName" required maxlength="50" value="${firstName != null ? firstName : ''}"/>
-      </div>
-      <div class="form-group">
-        <label>Last Name</label>
-        <input type="text" name="lastName" required maxlength="50" value="${lastName != null ? lastName : ''}"/>
+        <label>Full Name</label>
+        <input type="text" name="fullName" required maxlength="150" value="${fullName != null ? fullName : ''}"/>
       </div>
       <div class="form-group">
         <label>Email</label>
@@ -772,7 +778,7 @@
         <select name="status" required>
           <option value="ACTIVE" ${status == 'ACTIVE' || empty status ? 'selected' : ''}>Active</option>
           <option value="INACTIVE" ${status == 'INACTIVE' ? 'selected' : ''}>Inactive</option>
-          <option value="SUSPENDED" ${status == 'SUSPENDED' ? 'selected' : ''}>Suspended</option>
+          <option value="SUSPENDED" ${status == 'SUSPENDED' ? 'selected' : ''}>Rejected</option>
         </select>
       </div>
       <div class="form-group">
@@ -835,12 +841,8 @@
     <form id="editUserForm" action="${pageContext.request.contextPath}/admin/users/edit" method="post">
       <input type="hidden" name="editId" />
       <div class="form-group">
-        <label>First Name</label>
-        <input type="text" name="editFirstName" required maxlength="50"/>
-      </div>
-      <div class="form-group">
-        <label>Last Name</label>
-        <input type="text" name="editLastName" required maxlength="50"/>
+        <label>Full Name</label>
+        <input type="text" name="editFullName" required maxlength="150"/>
       </div>
       <div class="form-group">
         <label>Email</label>
@@ -878,7 +880,7 @@
         <select name="editStatus" required>
           <option value="ACTIVE">Active</option>
           <option value="INACTIVE">Inactive</option>
-          <option value="SUSPENDED">Suspended</option>
+          <option value="SUSPENDED">Rejected</option>
         </select>
       </div>
       <div class="form-group">
@@ -897,10 +899,6 @@
 </div>
 
 <script>
-  function toggleAll(master) {
-    document.querySelectorAll('.row-cb').forEach(cb => cb.checked = master.checked);
-  }
-
   function filterTable() {
     const q = document.getElementById('userSearch').value.toLowerCase();
     document.querySelectorAll('#userTable tbody tr').forEach(tr => {
@@ -935,6 +933,12 @@
     openAddUserModal();
   }
 
+  // Auto-open edit modal if navigated from user detail page
+  const editMatch = window.location.search.match(/[?&]action=edit&id=(\d+)/);
+  if (editMatch) {
+    openEditUserModal(parseInt(editMatch[1]));
+  }
+
   // Close on backdrop click
   document.getElementById('addUserModal').addEventListener('click', function(e) {
     if (e.target === this) closeAddUserModal();
@@ -956,7 +960,7 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">Full Name</span>
-            <span class="detail-value">\${user.firstName} \${user.lastName}</span>
+            <span class="detail-value">\${user.fullName}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Email</span>
@@ -1004,8 +1008,7 @@
       })
       .then(user => {
         document.querySelector('#editUserForm [name="editId"]').value = user.id;
-        document.querySelector('#editUserForm [name="editFirstName"]').value = user.firstName;
-        document.querySelector('#editUserForm [name="editLastName"]').value = user.lastName;
+        document.querySelector('#editUserForm [name="editFullName"]').value = user.fullName;
         document.querySelector('#editUserForm [name="editEmail"]').value = user.email;
         document.querySelector('#editUserForm [name="editPhone"]').value = user.phone || '';
         document.querySelector('#editUserForm [name="editBloodGroup"]').value = user.bloodGroup || '';
@@ -1055,5 +1058,13 @@
   });
 </script>
 
+  <script>
+    // Force reload when page is restored from bfcache (browser back button)
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+  </script>
 </body>
 </html>

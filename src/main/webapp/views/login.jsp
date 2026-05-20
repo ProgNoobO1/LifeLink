@@ -73,6 +73,10 @@
             }
             .hero { order: 2; }
             .login-card { order: 1; }
+            .stats { flex-direction: column; }
+            .stat-card { min-width: auto; }
+            main { padding: 2rem 1rem; }
+            .toast { min-width: auto; max-width: calc(100vw - 2rem); right: 1rem; left: 1rem; }
         }
 
         /* ── STEP 5: Left-side hero text ── */
@@ -598,6 +602,9 @@
     <% } %>
     <% if ("true".equals(request.getParameter("registered"))) { %>
         showToast('Registration successful! Please log in.', 'success');
+    <% } %>
+    <% if ("true".equals(request.getParameter("pending"))) { %>
+        showToast('Registration successful! Your account is pending admin approval.', 'success');
     <% } %>
 </script>
 

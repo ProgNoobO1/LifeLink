@@ -8,15 +8,12 @@ public class UserService {
 
     private final UserDAO userDAO = new UserDAO();
 
-    public void registerUser(String firstName, String lastName, String email,
+    public void registerUser(String fullName, String email,
                              String phone, String bloodGroup, String password,
-                             User.Role role, User.Status status) throws AuthException {
+                             User.Role role, User.Status status, boolean approved) throws AuthException {
 
-        if (firstName == null || firstName.trim().isEmpty()) {
-            throw new AuthException("First name is required.");
-        }
-        if (lastName == null || lastName.trim().isEmpty()) {
-            throw new AuthException("Last name is required.");
+        if (fullName == null || fullName.trim().isEmpty()) {
+            throw new AuthException("Full name is required.");
         }
         if (email == null || email.trim().isEmpty()) {
             throw new AuthException("Email is required.");
@@ -34,14 +31,14 @@ public class UserService {
         }
 
         User user = new User(
-            firstName.trim(),
-            lastName.trim(),
+            fullName.trim(),
             email.trim().toLowerCase(),
             phone != null && !phone.trim().isEmpty() ? phone.trim() : null,
             bloodGroup != null && !bloodGroup.isEmpty() ? bloodGroup : null,
             PasswordUtil.hash(password),
             role,
-            status != null ? status : User.Status.ACTIVE
+            status != null ? status : User.Status.ACTIVE,
+            approved
         );
 
         boolean saved = userDAO.save(user);
@@ -50,13 +47,12 @@ public class UserService {
         }
     }
 
-    public void updateUser(Long id, String firstName, String lastName, String email,
+    public void updateUser(Long id, String fullName, String email,
                            String phone, String bloodGroup, String password,
                            User.Role role, User.Status status, User currentAdmin) throws AuthException {
 
         if (id == null) throw new AuthException("User ID is required.");
-        if (firstName == null || firstName.trim().isEmpty()) throw new AuthException("First name is required.");
-        if (lastName == null || lastName.trim().isEmpty()) throw new AuthException("Last name is required.");
+        if (fullName == null || fullName.trim().isEmpty()) throw new AuthException("Full name is required.");
         if (email == null || email.trim().isEmpty()) throw new AuthException("Email is required.");
         if (role == null) throw new AuthException("Role is required.");
         if (status == null) throw new AuthException("Status is required.");
@@ -80,13 +76,17 @@ public class UserService {
             throw new AuthException("Another user with this email already exists.");
         }
 
-        existing.setFirstName(firstName.trim());
-        existing.setLastName(lastName.trim());
+        existing.setFullName(fullName.trim());
         existing.setEmail(email.trim().toLowerCase());
         existing.setPhone(phone != null && !phone.trim().isEmpty() ? phone.trim() : null);
         existing.setBloodGroup(bloodGroup != null && !bloodGroup.isEmpty() ? bloodGroup : null);
         existing.setRole(role);
         existing.setStatus(status);
+
+        // Auto-approve non-admin users when activated by admin
+        if (status == User.Status.ACTIVE && role != User.Role.ADMIN) {
+            existing.setApproved(true);
+        }
 
         // Only update password if provided
         if (password != null && !password.trim().isEmpty()) {

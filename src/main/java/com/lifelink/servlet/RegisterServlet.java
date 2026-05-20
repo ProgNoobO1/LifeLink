@@ -1,7 +1,10 @@
 package com.lifelink.servlet;
 
+import com.lifelink.model.Notification;
 import com.lifelink.model.User;
 import com.lifelink.service.AuthException;
+import com.lifelink.service.EmailService;
+import com.lifelink.service.NotificationService;
 import com.lifelink.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
@@ -30,17 +33,8 @@ public class RegisterServlet extends HttpServlet {
         String password = req.getParameter("password");
         String confirmPassword = req.getParameter("confirmPassword");
 
-        // Split full name into first and last
-        String firstName = fullName != null ? fullName.trim() : "";
-        String lastName = "";
-        int spaceIdx = firstName.lastIndexOf(' ');
-        if (spaceIdx > 0) {
-            lastName = firstName.substring(spaceIdx + 1);
-            firstName = firstName.substring(0, spaceIdx);
-        }
-
         // Validation
-        if (firstName.isEmpty()) {
+        if (fullName == null || fullName.trim().isEmpty()) {
             redirectWithError(req, resp, "Full name is required.");
             return;
         }
@@ -62,13 +56,39 @@ public class RegisterServlet extends HttpServlet {
         }
 
         try {
+            if (roleStr == null || roleStr.isEmpty()) {
+                throw new IllegalArgumentException("Role is required.");
+            }
             User.Role role = User.Role.valueOf(roleStr.toUpperCase());
-            userService.registerUser(firstName, lastName, email.trim(), phone, bloodGroup, password, role, User.Status.ACTIVE);
-            resp.sendRedirect(req.getContextPath() + "/login?registered=true");
+            boolean approved = (role == User.Role.ADMIN);
+            User.Status status = approved ? User.Status.ACTIVE : User.Status.INACTIVE;
+            userService.registerUser(fullName.trim(), email.trim(), phone, bloodGroup, password, role, status, approved);
+
+            Notification notification = new Notification(
+                "NEW_USER",
+                "New user registered",
+                fullName.trim() + " (" + email.trim() + ") registered as " + role.name().toLowerCase(),
+                req.getContextPath() + "/admin/users"
+            );
+            NotificationService.getInstance().broadcast(notification);
+
+            if (approved) {
+                // Send welcome email for auto-approved roles (admin)
+                String welcomeSubject = "Welcome to LifeLink!";
+                String welcomeBody = EmailService.buildHtmlBody(
+                    "Welcome to LifeLink",
+                    "Hi " + fullName.trim() + ",<br><br>Your account has been registered successfully as a " + role.name().toLowerCase() + ".<br>Thank you for joining our blood management community.",
+                    null, null
+                );
+                EmailService.sendEmail(email.trim(), welcomeSubject, welcomeBody);
+                resp.sendRedirect(req.getContextPath() + "/login?registered=true");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/login?pending=true");
+            }
         } catch (AuthException e) {
             redirectWithError(req, resp, e.getMessage());
         } catch (IllegalArgumentException e) {
-            redirectWithError(req, resp, "Invalid role selected.");
+            redirectWithError(req, resp, e.getMessage() != null ? e.getMessage() : "Invalid role selected.");
         }
     }
 

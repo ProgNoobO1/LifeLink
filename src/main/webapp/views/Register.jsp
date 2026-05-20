@@ -66,6 +66,11 @@
             }
             .hero { order: 2; }
             .register-card { order: 1; }
+            .stats { grid-template-columns: 1fr 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .role-group { grid-template-columns: 1fr; }
+            main { padding: 2rem 1rem; }
+            .toast { min-width: auto; max-width: calc(100vw - 2rem); right: 1rem; left: 1rem; }
         }
 
         /* ── Left Hero ── */
@@ -239,6 +244,14 @@
             border-color: var(--blue-focus);
             box-shadow: 0 0 0 3px rgba(59,130,246,.15);
             background: white;
+        }
+
+        .input-wrapper input:disabled,
+        .input-wrapper select:disabled {
+            background: #e5e7eb;
+            color: var(--text-light);
+            cursor: not-allowed;
+            opacity: .6;
         }
 
         .input-wrapper input::placeholder { color: var(--text-light); }
@@ -703,12 +716,24 @@
     /* ── Role selector ── */
     const roleBtns = document.querySelectorAll('.role-btn');
     const roleInput = document.getElementById('role');
+    const fullNameInput = document.getElementById('fullName');
+    const bloodGroupSelect = document.getElementById('bloodGroup');
+
+    function setHospitalMode(isHospital) {
+        fullNameInput.disabled = isHospital;
+        bloodGroupSelect.disabled = isHospital;
+        if (isHospital) {
+            fullNameInput.value = '';
+            bloodGroupSelect.value = '';
+        }
+    }
 
     roleBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             roleBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             roleInput.value = btn.dataset.role;
+            setHospitalMode(btn.dataset.role === 'hospital');
         });
     });
 
@@ -754,12 +779,13 @@
 
     /* ── Client-side validation ── */
     document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const role      = document.getElementById('role').value;
         const fullName  = document.getElementById('fullName').value.trim();
         const email     = document.getElementById('email').value.trim();
         const password  = document.getElementById('password').value;
         const confirm   = document.getElementById('confirmPassword').value;
 
-        if (!fullName || !email || !password || !confirm) {
+        if ((!fullName && role !== 'hospital') || !email || !password || !confirm) {
             e.preventDefault();
             showToast('Please fill in all required fields.', 'error');
             return;

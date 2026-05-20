@@ -1,16 +1,20 @@
 package com.lifelink.model;
 
+import java.time.LocalDateTime;
+
 public class User {
 
     private Long id;
-    private String firstName;
-    private String lastName;
+    private String fullName;
     private String email;
     private String phone;
     private String bloodGroup;
     private String passwordHash;
     private Role role;
     private Status status = Status.ACTIVE;
+    private boolean approved = false;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public enum Role {
         ADMIN, DONOR, RECIPIENT, HOSPITAL
@@ -22,10 +26,9 @@ public class User {
 
     public User() {}
 
-    public User(String firstName, String lastName, String email, String phone,
+    public User(String fullName, String email, String phone,
                 String bloodGroup, String passwordHash, Role role, Status status) {
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.email = email;
         this.phone = phone;
         this.bloodGroup = bloodGroup;
@@ -34,15 +37,18 @@ public class User {
         this.status = status;
     }
 
+    public User(String fullName, String email, String phone,
+                String bloodGroup, String passwordHash, Role role, Status status, boolean approved) {
+        this(fullName, email, phone, bloodGroup, passwordHash, role, status);
+        this.approved = approved;
+    }
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
-
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -62,7 +68,33 @@ public class User {
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
 
-    public String getFullName() {
-        return firstName + " " + lastName;
+    public boolean isApproved() { return approved; }
+    public void setApproved(boolean approved) { this.approved = approved; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getInitials() {
+        if (fullName == null || fullName.isEmpty()) return "??";
+        String[] parts = fullName.trim().split("\\s+");
+        if (parts.length == 1) {
+            return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
+        }
+        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
+    }
+
+    public String getFormattedDate() {
+        if (createdAt == null) return "";
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM dd, yyyy");
+        return createdAt.format(formatter);
+    }
+
+    public String getMemberSince() {
+        if (createdAt == null) return "";
+        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MMM yyyy");
+        return createdAt.format(formatter);
     }
 }

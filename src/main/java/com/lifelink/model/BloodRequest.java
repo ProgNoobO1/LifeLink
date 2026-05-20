@@ -1,6 +1,7 @@
 package com.lifelink.model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class BloodRequest {
 
@@ -11,6 +12,10 @@ public class BloodRequest {
     private int units;
     private LocalDate requestDate;
     private Status status = Status.PENDING;
+    private String urgency;
+    private String notes;
+    private LocalDateTime updatedAt;
+    private LocalDateTime completedAt;
 
     public enum Status {
         PENDING, APPROVED, REJECTED
@@ -48,6 +53,18 @@ public class BloodRequest {
 
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; }
+
+    public String getUrgency() { return urgency; }
+    public void setUrgency(String urgency) { this.urgency = urgency; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
+
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public LocalDateTime getCompletedAt() { return completedAt; }
+    public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
 
     public String getFormattedRequestId() {
         return String.format("#REQ-%03d", id);

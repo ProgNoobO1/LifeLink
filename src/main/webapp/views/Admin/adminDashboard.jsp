@@ -420,6 +420,24 @@
         .middle-row { animation: fadeUp .4s ease .3s both; }
         .activity-section { animation: fadeUp .4s ease .4s both; }
 
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .main { margin-left: 0; }
+            .content { padding: 1.25rem 1rem; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .middle-row { grid-template-columns: 1fr; }
+            .activity-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .activity-row { grid-template-columns: 1fr; }
+            .card-head { flex-direction: column; align-items: flex-start; gap: .75rem; }
+            .card-actions { width: 100%; flex-wrap: wrap; }
+            table { display: block; overflow-x: auto; white-space: nowrap; }
+            .quick-actions { padding: 1rem; }
+            .chart-area { padding: 0 1rem 1rem; }
+        }
+
     </style>
 </head>
 <body>
@@ -487,15 +505,11 @@
             <div class="card">
                 <div class="card-head">
                     <div>
-                        <h3>Recent Requests</h3>
-                        <p>Latest blood request activity</p>
+                        <h3>Recent Users</h3>
+                        <p>Latest registered users</p>
                     </div>
                     <div class="card-actions">
                         <a href="${pageContext.request.contextPath}/admin/users" class="btn-red-outline" style="text-decoration:none;">View All</a>
-                        <button class="btn-outline">
-                            <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                            Filter
-                        </button>
                     </div>
                 </div>
 
@@ -514,7 +528,7 @@
                     <c:forEach items="${recentUsers}" var="u">
                     <tr>
                         <td><span class="req-id">#USR-${u.id}</span></td>
-                        <td>${u.firstName} ${u.lastName}</td>
+                        <td>${u.fullName}</td>
                         <td>
                             <c:choose>
                                 <c:when test="${not empty u.bloodGroup}">
@@ -533,11 +547,11 @@
                                     <span class="status-pill pending">Inactive</span>
                                 </c:when>
                                 <c:otherwise>
-                                    <span class="status-pill rejected">Suspended</span>
+                                    <span class="status-pill rejected">Rejected</span>
                                 </c:otherwise>
                             </c:choose>
                         </td>
-                        <td><a href="${pageContext.request.contextPath}/admin/users" class="review-link">View</a></td>
+
                     </tr>
                     </c:forEach>
                     <c:if test="${empty recentUsers}">
@@ -643,5 +657,12 @@
     </div><!-- /content -->
 </div><!-- /main -->
 
+  <script>
+    window.addEventListener('pageshow', function(event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    });
+  </script>
 </body>
 </html>

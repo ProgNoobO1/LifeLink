@@ -1,7 +1,10 @@
 package com.lifelink.servlet;
 
+import com.lifelink.model.Notification;
 import com.lifelink.model.User;
 import com.lifelink.service.AuthException;
+import com.lifelink.service.EmailService;
+import com.lifelink.service.NotificationService;
 import com.lifelink.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
@@ -23,13 +26,12 @@ public class AddUserServlet extends HttpServlet {
         }
 
         User admin = (User) session.getAttribute("currentUser");
-        if (admin.getRole() != User.Role.ADMIN) {
+        if (admin == null || admin.getRole() == null || admin.getRole() != User.Role.ADMIN) {
             resp.sendError(HttpServletResponse.SC_FORBIDDEN, "Admin access required");
             return;
         }
 
-        String firstName = req.getParameter("firstName");
-        String lastName = req.getParameter("lastName");
+        String fullName = req.getParameter("fullName");
         String email = req.getParameter("email");
         String phone = req.getParameter("phone");
         String bloodGroup = req.getParameter("bloodGroup");
@@ -38,19 +40,38 @@ public class AddUserServlet extends HttpServlet {
         String statusStr = req.getParameter("status");
 
         try {
+            if (roleStr == null || roleStr.isEmpty() || statusStr == null || statusStr.isEmpty()) {
+                throw new IllegalArgumentException("Role and status are required.");
+            }
             User.Role role = User.Role.valueOf(roleStr);
             User.Status status = User.Status.valueOf(statusStr);
 
-            userService.registerUser(firstName, lastName, email, phone,
-                    bloodGroup, password, role, status);
+            userService.registerUser(fullName, email, phone,
+                    bloodGroup, password, role, status, true);
+
+            Notification notification = new Notification(
+                "NEW_USER",
+                "New user added",
+                fullName + " (" + email + ") was added as " + role.name().toLowerCase(),
+                req.getContextPath() + "/admin/users"
+            );
+            NotificationService.getInstance().broadcast(notification);
+
+            // Send welcome email to new user
+            String welcomeSubject = "Welcome to LifeLink!";
+            String welcomeBody = EmailService.buildHtmlBody(
+                "Welcome to LifeLink",
+                "Hi " + fullName + ",<br><br>An account has been created for you on LifeLink as a " + role.name().toLowerCase() + ".<br>Please login with your registered email and password.",
+                null, null
+            );
+            EmailService.sendEmail(email, welcomeSubject, welcomeBody);
 
             session.setAttribute("successMessage", "User created successfully!");
-            resp.sendRedirect(req.getContextPath() + "/admin/users");
+            resp.sendRedirect(req.getContextPath() + "/admin/users?ts=" + System.currentTimeMillis());
 
         } catch (AuthException e) {
             req.setAttribute("error", e.getMessage());
-            req.setAttribute("firstName", firstName);
-            req.setAttribute("lastName", lastName);
+            req.setAttribute("fullName", fullName);
             req.setAttribute("email", email);
             req.setAttribute("phone", phone);
             req.setAttribute("bloodGroup", bloodGroup);
@@ -58,9 +79,8 @@ public class AddUserServlet extends HttpServlet {
             req.setAttribute("status", statusStr);
             req.getRequestDispatcher("/views/Admin/adminManageUsers.jsp").forward(req, resp);
         } catch (IllegalArgumentException e) {
-            req.setAttribute("error", "Invalid role or status selected.");
-            req.setAttribute("firstName", firstName);
-            req.setAttribute("lastName", lastName);
+            req.setAttribute("error", e.getMessage() != null ? e.getMessage() : "Invalid role or status selected.");
+            req.setAttribute("fullName", fullName);
             req.setAttribute("email", email);
             req.setAttribute("phone", phone);
             req.setAttribute("bloodGroup", bloodGroup);
