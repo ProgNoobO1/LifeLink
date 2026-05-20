@@ -1,0 +1,213 @@
+package com.lifelink.dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.lifelink.model.Notification;
+import com.lifelink.utils.DBConnection;
+
+public class NotificationDAO {
+
+    private Notification mapResultSet(ResultSet rs) throws SQLException {
+        Notification n = new Notification();
+        n.setId(rs.getLong("id"));
+        n.setType(rs.getString("type"));
+        n.setTitle(rs.getString("title"));
+        n.setMessage(rs.getString("message"));
+        n.setLink(rs.getString("link"));
+        n.setRead(rs.getInt("is_read") == 1);
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) {
+            n.setCreatedAt(createdAt.toLocalDateTime());
+        }
+        return n;
+    }
+
+    public boolean save(Notification notification) {
+        String sql = "INSERT INTO notifications (type, title, message, link, is_read, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, notification.getType());
+            stmt.setString(2, notification.getTitle());
+            stmt.setString(3, notification.getMessage());
+            stmt.setString(4, notification.getLink());
+            stmt.setInt(5, notification.isRead() ? 1 : 0);
+            stmt.setTimestamp(6, Timestamp.valueOf(notification.getCreatedAt() != null ? notification.getCreatedAt() : LocalDateTime.now()));
+
+            int affected = stmt.executeUpdate();
+            if (affected == 0) {
+                return false;
+            }
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    notification.setId(keys.getLong(1));
+                }
+            }
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<Notification> findUnread() {
+        String sql = "SELECT * FROM notifications WHERE is_read = 0 ORDER BY created_at DESC LIMIT 50";
+        List<Notification> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+        return list;
+    }
+
+    public long countUnread() {
+        String sql = "SELECT COUNT(*) FROM notifications WHERE is_read = 0";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getLong(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public boolean markRead(Long id) {
+        String sql = "UPDATE notifications SET is_read = 1 WHERE id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setLong(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean markAllRead() {
+        String sql = "UPDATE notifications SET is_read = 1 WHERE is_read = 0";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            return stmt.executeUpdate() >= 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public List<Notification> findAll() {
+        String sql = "SELECT * FROM notifications ORDER BY created_at DESC LIMIT 200";
+        List<Notification> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSet(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
+        return list;
+    }
+
+    public int getUnreadCount(int userId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM email_notifications WHERE user_id = ? AND status = 'queued'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return 0;
+    }
+
+    public List<NotificationItem> getRecent(int userId) throws SQLException {
+        String sql =
+            "SELECT subject, body, created_at " +
+            "FROM email_notifications " +
+            "WHERE user_id = ? " +
+            "ORDER BY created_at DESC " +
+            "LIMIT 10";
+        List<NotificationItem> items = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Timestamp createdAt = rs.getTimestamp("created_at");
+                    items.add(new NotificationItem(
+                        rs.getString("subject"),
+                        rs.getString("body"),
+                        createdAt != null ? createdAt.toLocalDateTime() : null
+                    ));
+                }
+            }
+        }
+        return items;
+    }
+
+    public boolean markAllAsRead(int userId) throws SQLException {
+        String sql = "UPDATE email_notifications SET status = 'sent' WHERE user_id = ? AND status = 'queued'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.executeUpdate();
+            return true;
+        }
+    }
+
+    public boolean insertNotification(int userId, String subject, String body) throws SQLException {
+        String sql = "INSERT INTO email_notifications (user_id, subject, body, status) VALUES (?, ?, ?, 'queued')";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setString(2, subject);
+            stmt.setString(3, body);
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    public static class NotificationItem {
+        private final String subject;
+        private final String body;
+        private final LocalDateTime createdAt;
+
+        public NotificationItem(String subject, String body, LocalDateTime createdAt) {
+            this.subject = subject;
+            this.body = body;
+            this.createdAt = createdAt;
+        }
+
+        public String getSubject() {
+            return subject;
+        }
+
+        public String getBody() {
+            return body;
+        }
+
+        public LocalDateTime getCreatedAt() {
+            return createdAt;
+        }
+    }
+}

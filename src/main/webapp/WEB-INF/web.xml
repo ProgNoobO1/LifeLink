@@ -6,7 +6,205 @@
          version="6.0">
     <display-name>LifeLink Blood Donation Management System</display-name>
     
+    <!-- Servlets -->
+    <servlet>
+      <servlet-name>LoginServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.LoginServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>LoginServlet</servlet-name>
+      <url-pattern>/login</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>RegisterServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.RegisterServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>RegisterServlet</servlet-name>
+      <url-pattern>/register</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>LogoutServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.LogoutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>LogoutServlet</servlet-name>
+      <url-pattern>/logout</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>AdminDashboardServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.AdminDashboardServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>AdminDashboardServlet</servlet-name>
+      <url-pattern>/admin/dashboard</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>AdminRequestServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.AdminRequestServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>AdminRequestServlet</servlet-name>
+      <url-pattern>/admin/requests</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>RequestActionServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.RequestActionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>RequestActionServlet</servlet-name>
+      <url-pattern>/admin/requests/action</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>RequestExportServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.RequestExportServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>RequestExportServlet</servlet-name>
+      <url-pattern>/admin/requests/export</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>AdminReportsServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.AdminReportsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>AdminReportsServlet</servlet-name>
+      <url-pattern>/admin/reports</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>ReportsExportServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.ReportsExportServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>ReportsExportServlet</servlet-name>
+      <url-pattern>/admin/reports/export</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>UserListServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.UserListServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>UserListServlet</servlet-name>
+      <url-pattern>/admin/users</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>AddUserServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.AddUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>AddUserServlet</servlet-name>
+      <url-pattern>/admin/users/add</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>ViewUserServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.ViewUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>ViewUserServlet</servlet-name>
+      <url-pattern>/admin/users/view</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>EditUserServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.EditUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>EditUserServlet</servlet-name>
+      <url-pattern>/admin/users/edit</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>DeleteUserServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.DeleteUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>DeleteUserServlet</servlet-name>
+      <url-pattern>/admin/users/delete</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>RejectUserServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.RejectUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>RejectUserServlet</servlet-name>
+      <url-pattern>/admin/users/reject</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>ApproveUserServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.ApproveUserServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>ApproveUserServlet</servlet-name>
+      <url-pattern>/admin/users/approve</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>NotificationServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.NotificationServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>NotificationServlet</servlet-name>
+      <url-pattern>/admin/notifications/stream</url-pattern>
+    </servlet-mapping>
+  
+    <servlet>
+      <servlet-name>NotificationApiServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.NotificationApiServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>NotificationApiServlet</servlet-name>
+      <url-pattern>/admin/notifications/api</url-pattern>
+    </servlet-mapping>
+  
+    <!-- Recipient Servlets -->
+    <servlet>
+      <servlet-name>RecipientDashboardServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.RecipientDashboardServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>RecipientDashboardServlet</servlet-name>
+      <url-pattern>/recipient/dashboard</url-pattern>
+    </servlet-mapping>
+  
+    <!-- Listeners -->
+    <listener>
+      <listener-class>com.lifelink.listener.AppContextListener</listener-class>
+    </listener>
+  
+    <!-- Filters -->
+    <filter>
+      <filter-name>AdminFilter</filter-name>
+      <filter-class>com.lifelink.filter.AdminFilter</filter-class>
+    </filter>
+    <filter-mapping>
+      <filter-name>AdminFilter</filter-name>
+      <url-pattern>/views/Admin/*</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+      <filter-name>AdminFilter</filter-name>
+      <url-pattern>/admin/*</url-pattern>
+    </filter-mapping>
+  
+    <!-- Session timeout: 30 minutes -->
+    <session-config>
+      <session-timeout>30</session-timeout>
+    </session-config>
+  
+    <!-- Welcome file -->
     <welcome-file-list>
-        <welcome-file>index.jsp</welcome-file>
+      <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 </web-app>

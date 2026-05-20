@@ -40,4 +40,9 @@ public class DBConnection {
             }
         }
     }
+
+    public static void close() {
+        // Fallback for Recipient branch calling close
+        System.out.println("Connection close called.");
+    }
 }

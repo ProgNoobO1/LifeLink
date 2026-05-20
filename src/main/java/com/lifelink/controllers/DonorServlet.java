@@ -1,9 +1,9 @@
 package com.lifelink.controllers;
 
 import com.lifelink.dao.DonorDAO;
-import com.lifelink.models.BloodRequest;
-import com.lifelink.models.Donor;
-import com.lifelink.models.Notification;
+import com.lifelink.model.BloodRequest;
+import com.lifelink.model.Donor;
+import com.lifelink.model.Notification;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -128,7 +128,7 @@ public class DonorServlet extends HttpServlet {
                 } else {
                     message = "New " + req.getBloodGroup() + " request for Patient: " + req.getPatientName() + " (Age: " + (req.getPatientAge() > 0 ? req.getPatientAge() : "N/A") + ")";
                 }
-                notifications.add(new Notification(
+                notifications.add(Notification.createDonorNotification(
                     "Request",
                     message,
                     "fas fa-tint",
@@ -141,7 +141,7 @@ public class DonorServlet extends HttpServlet {
             long diffInMillies = Math.abs(System.currentTimeMillis() - donor.getLastDonationDate().getTime());
             long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
             if (diffInDays >= 90) {
-                notifications.add(new Notification(
+                notifications.add(Notification.createDonorNotification(
                     "Renewal",
                     "You are now eligible to donate again! Mark yourself as available.",
                     "fas fa-check-circle",
@@ -201,7 +201,7 @@ public class DonorServlet extends HttpServlet {
         
         List<Notification> notifications = getNotifications(donor, requests);
         
-        List<com.lifelink.models.District> districts = donorDAO.getNepalDistricts();
+        List<com.lifelink.model.District> districts = donorDAO.getNepalDistricts();
         
         request.setAttribute("donor", donor);
         request.setAttribute("requests", requests);

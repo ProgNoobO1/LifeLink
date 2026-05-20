@@ -1,0 +1,98 @@
+package com.lifelink.servlet;
+
+import com.lifelink.model.Notification;
+import com.lifelink.model.User;
+import com.lifelink.service.AuthException;
+import com.lifelink.service.EmailService;
+import com.lifelink.service.NotificationService;
+import com.lifelink.service.UserService;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.*;
+
+import java.io.IOException;
+import java.net.URLEncoder;
+
+public class RegisterServlet extends HttpServlet {
+
+    private final UserService userService = new UserService();
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.getRequestDispatcher("/views/Register.jsp").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+
+        String fullName = req.getParameter("fullName");
+        String email = req.getParameter("email");
+        String phone = req.getParameter("phone");
+        String bloodGroup = req.getParameter("bloodGroup");
+        String roleStr = req.getParameter("role");
+        String password = req.getParameter("password");
+        String confirmPassword = req.getParameter("confirmPassword");
+
+        // Validation
+        if (fullName == null || fullName.trim().isEmpty()) {
+            redirectWithError(req, resp, "Full name is required.");
+            return;
+        }
+        if (email == null || email.trim().isEmpty()) {
+            redirectWithError(req, resp, "Email is required.");
+            return;
+        }
+        if (password == null || password.isEmpty()) {
+            redirectWithError(req, resp, "Password is required.");
+            return;
+        }
+        if (!password.equals(confirmPassword)) {
+            redirectWithError(req, resp, "Passwords do not match.");
+            return;
+        }
+        if (password.length() < 8) {
+            redirectWithError(req, resp, "Password must be at least 8 characters.");
+            return;
+        }
+
+        try {
+            if (roleStr == null || roleStr.isEmpty()) {
+                throw new IllegalArgumentException("Role is required.");
+            }
+            User.Role role = User.Role.valueOf(roleStr.toUpperCase());
+            boolean approved = (role == User.Role.ADMIN);
+            User.Status status = approved ? User.Status.ACTIVE : User.Status.INACTIVE;
+            userService.registerUser(fullName.trim(), email.trim(), phone, bloodGroup, password, role, status, approved);
+
+            Notification notification = new Notification(
+                "NEW_USER",
+                "New user registered",
+                fullName.trim() + " (" + email.trim() + ") registered as " + role.name().toLowerCase(),
+                req.getContextPath() + "/admin/users"
+            );
+            NotificationService.getInstance().broadcast(notification);
+
+            if (approved) {
+                // Send welcome email for auto-approved roles (admin)
+                String welcomeSubject = "Welcome to LifeLink!";
+                String welcomeBody = EmailService.buildHtmlBody(
+                    "Welcome to LifeLink",
+                    "Hi " + fullName.trim() + ",<br><br>Your account has been registered successfully as a " + role.name().toLowerCase() + ".<br>Thank you for joining our blood management community.",
+                    null, null
+                );
+                EmailService.sendEmail(email.trim(), welcomeSubject, welcomeBody);
+                resp.sendRedirect(req.getContextPath() + "/login?registered=true");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/login?pending=true");
+            }
+        } catch (AuthException e) {
+            redirectWithError(req, resp, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            redirectWithError(req, resp, e.getMessage() != null ? e.getMessage() : "Invalid role selected.");
+        }
+    }
+
+    private void redirectWithError(HttpServletRequest req, HttpServletResponse resp, String message) throws IOException {
+        resp.sendRedirect(req.getContextPath() + "/register?error=" + URLEncoder.encode(message, "UTF-8"));
+    }
+}

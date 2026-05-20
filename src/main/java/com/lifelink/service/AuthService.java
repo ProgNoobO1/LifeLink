@@ -1,0 +1,36 @@
+package com.lifelink.service;
+
+import com.lifelink.dao.UserDAO;
+import com.lifelink.model.User;
+import com.lifelink.utils.PasswordUtil;
+
+public class AuthService {
+
+    private final UserDAO userDAO;
+
+    public AuthService() {
+        this.userDAO = new UserDAO();
+    }
+
+    public User login(String email, String password) throws AuthException {
+        if (email == null || email.trim().isEmpty() || password == null || password.isEmpty()) {
+            throw new AuthException("Email and password are required.");
+        }
+
+        User user = userDAO.findByEmail(email.trim().toLowerCase());
+        if (user == null || !PasswordUtil.verify(password, user.getPasswordHash())) {
+            throw new AuthException("Invalid email or password.");
+        }
+
+        if (user.getStatus() != User.Status.ACTIVE) {
+            throw new AuthException("Your account is inactive. Please contact support.");
+        }
+
+        // Donor, Recipient, Hospital require admin approval
+        if (user.getRole() != User.Role.ADMIN && !user.isApproved()) {
+            throw new AuthException("Your account is pending admin approval. Please wait or contact support.");
+        }
+
+        return user;
+    }
+}
