@@ -157,7 +157,7 @@ public class NotificationDAO {
                     Timestamp createdAt = rs.getTimestamp("created_at");
                     items.add(new NotificationItem(
                         rs.getString("subject"),
-                        rs.getString("body"),
+                        sanitizeNotificationBody(rs.getString("body")),
                         createdAt != null ? createdAt.toLocalDateTime() : null
                     ));
                 }
@@ -187,6 +187,21 @@ public class NotificationDAO {
         }
     }
 
+    public boolean hasQueuedNotification(int userId, String subject) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM email_notifications WHERE user_id = ? AND subject = ? AND status = 'queued'";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setString(2, subject);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
+
     public static class NotificationItem {
         private final String subject;
         private final String body;
@@ -209,5 +224,38 @@ public class NotificationDAO {
         public LocalDateTime getCreatedAt() {
             return createdAt;
         }
+    }
+
+    private String sanitizeNotificationBody(String body) {
+        if (body == null || body.trim().isEmpty()) {
+            return "";
+        }
+
+        String cleaned = body
+                .replaceAll("(?i)<br\\s*/?>", "\n")
+                .replaceAll("(?i)</p>|</div>|</h[1-6]>|</li>", "\n")
+                .replaceAll("(?i)<li>", "- ")
+                .replaceAll("(?s)<[^>]*>", " ");
+
+        cleaned = htmlUnescape(cleaned);
+        cleaned = cleaned
+                .replaceAll("(?i)<br\\s*/?>", "\n")
+                .replaceAll("(?s)<[^>]*>", " ")
+                .replace('\u00A0', ' ')
+                .replaceAll("[ \\t\\x0B\\f\\r]+", " ")
+                .replaceAll(" *\\n+ *", "\n")
+                .trim();
+
+        return cleaned.isEmpty() ? body.trim() : cleaned;
+    }
+
+    private String htmlUnescape(String value) {
+        return value
+                .replace("&nbsp;", " ")
+                .replace("&lt;", "<")
+                .replace("&gt;", ">")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+                .replace("&amp;", "&");
     }
 }

@@ -43,6 +43,7 @@ public class LoginServlet extends HttpServlet {
             HttpSession newSession = req.getSession(true);
             newSession.setAttribute("currentUser", user);
             newSession.setAttribute("userId", user.getId());
+            newSession.setAttribute("email", user.getEmail());
             if (user.getRole() != null) {
                 newSession.setAttribute("role", user.getRole().name());
             }
@@ -69,6 +70,8 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("donorId", user.getId().intValue());
             }
             resp.sendRedirect(resp.encodeRedirectURL(contextPath + "/donor/dashboard"));
+        } else if (role == User.Role.HOSPITAL) {
+            resp.sendRedirect(resp.encodeRedirectURL(contextPath + "/hospital/dashboard"));
         } else {
             resp.sendRedirect(resp.encodeRedirectURL(contextPath + "/index.jsp"));
         }

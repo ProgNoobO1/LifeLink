@@ -216,7 +216,17 @@ public class UserDAO {
     }
 
     public List<User> findRecent(int limit) {
-        String sql = "SELECT u.*, bg.name as blood_group FROM users u LEFT JOIN blood_groups bg ON u.blood_group_id = bg.id ORDER BY u.id DESC LIMIT ?";
+        String sql = "SELECT u.id, " +
+                "CASE " +
+                "    WHEN u.role = 'hospital' THEN COALESCE(NULLIF(h.hospital_name, ''), u.full_name) " +
+                "    ELSE u.full_name " +
+                "END AS full_name, " +
+                "u.email, u.phone, bg.name as blood_group, u.password_hash, u.role, " +
+                "u.is_active, u.is_approved, u.created_at, u.updated_at " +
+                "FROM users u " +
+                "LEFT JOIN blood_groups bg ON u.blood_group_id = bg.id " +
+                "LEFT JOIN hospitals h ON h.user_id = u.id " +
+                "ORDER BY u.id DESC LIMIT ?";
         List<User> users = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
