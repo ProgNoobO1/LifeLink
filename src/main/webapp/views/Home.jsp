@@ -474,7 +474,7 @@
         <a href="#blood-groups">Blood Types</a>
         <a href="#stats">Impact</a>
         <a href="<%= request.getContextPath() %>/views/aboutus.jsp">About Us</a>
-        <a href="<%= request.getContextPath() %>/contact">Contact</a>
+        <a href="<%= request.getContextPath() %>/views/contact.jsp">Contact</a>
     </div>
     <div class="nav-cta">
         <% if (isLoggedIn) { %>
