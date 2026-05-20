@@ -226,6 +226,9 @@ public class DonorDAO {
 
     public List<BloodRequest> getRequestsForDonor(int donorId) {
         List<BloodRequest> requests = new ArrayList<>();
+        if (System.currentTimeMillis() >= 0) {
+            return getRequestsForDonorSchema(donorId);
+        }
         // UNION of two branches:
         //   Branch 1: requests explicitly targeted at this donor (donor_id = ?)
         //   Branch 2: open requests (donor_id IS NULL) matching the donor's blood group
@@ -293,6 +296,9 @@ public class DonorDAO {
     }
 
     public boolean updateRequestStatus(int requestId, int donorId, String status) {
+        if (System.currentTimeMillis() >= 0) {
+            return updateRequestStatusSchema(requestId, donorId, status);
+        }
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
@@ -441,6 +447,9 @@ public class DonorDAO {
     }
 
     public List<BloodRequest> getDonationHistory(int donorId) {
+        if (System.currentTimeMillis() >= 0) {
+            return getDonationHistorySchema(donorId);
+        }
         List<BloodRequest> history = new ArrayList<>();
         String sql = "SELECT br.id as request_id, br.requester_id, br.units_needed, br.urgency, br.status, br.requested_at as request_date, br.notes, " +
                      "bg.name as blood_group, u.role as requester_role, u.full_name as user_full_name, " +
@@ -488,6 +497,201 @@ public class DonorDAO {
             e.printStackTrace();
         }
         return history;
+    }
+
+    private List<BloodRequest> getRequestsForDonorSchema(int donorId) {
+        List<BloodRequest> requests = new ArrayList<>();
+        String sql = "SELECT br.id as request_id, br.requester_id, br.units_needed, br.urgency, br.status, " +
+                     "br.requested_at as request_date, br.notes, bg.name as blood_group, " +
+                     "u.role as requester_role, u.full_name as user_full_name, " +
+                     "r.date_of_birth as recipient_dob, h.hospital_name as hospital_name, h.address as hospital_address " +
+                     "FROM blood_requests br " +
+                     "JOIN donors d ON d.blood_group_id = br.blood_group_id AND d.user_id = ? " +
+                     "JOIN blood_groups bg ON br.blood_group_id = bg.id " +
+                     "JOIN users u ON br.requester_id = u.id " +
+                     "LEFT JOIN recipients r ON u.id = r.user_id " +
+                     "LEFT JOIN hospitals h ON u.id = h.user_id " +
+                     "LEFT JOIN request_responses rr ON rr.request_id = br.id " +
+                     "  AND rr.responder_id = ? AND rr.responder_type = 'donor' " +
+                     "WHERE br.status = 'pending' AND rr.id IS NULL " +
+                     "ORDER BY br.requested_at DESC, br.id DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, donorId);
+            pstmt.setInt(2, donorId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    BloodRequest br = mapDonorRequest(rs, donorId);
+                    requests.add(br);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return requests;
+    }
+
+    private boolean updateRequestStatusSchema(int requestId, int donorId, String status) {
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            int bloodGroupId = 0;
+            int unitsNeeded = 1;
+            int requesterId = 0;
+            String queryRequest = "SELECT br.requester_id, br.blood_group_id, br.units_needed " +
+                                  "FROM blood_requests br " +
+                                  "JOIN donors d ON d.blood_group_id = br.blood_group_id AND d.user_id = ? " +
+                                  "WHERE br.id = ? AND br.status = 'pending'";
+            try (PreparedStatement pstmt = conn.prepareStatement(queryRequest)) {
+                pstmt.setInt(1, donorId);
+                pstmt.setInt(2, requestId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        requesterId = rs.getInt("requester_id");
+                        bloodGroupId = rs.getInt("blood_group_id");
+                        unitsNeeded = rs.getInt("units_needed");
+                    } else {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            String donorName = "Donor";
+            try (PreparedStatement pstmt = conn.prepareStatement("SELECT full_name FROM users WHERE id = ?")) {
+                pstmt.setInt(1, donorId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        donorName = rs.getString("full_name");
+                    }
+                }
+            }
+
+            boolean accepted = "Accepted".equals(status);
+            String response = accepted ? "accepted" : "rejected";
+
+            String existingResponseSql = "SELECT 1 FROM request_responses WHERE request_id = ? AND responder_id = ? AND responder_type = 'donor'";
+            try (PreparedStatement pstmt = conn.prepareStatement(existingResponseSql)) {
+                pstmt.setInt(1, requestId);
+                pstmt.setInt(2, donorId);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            }
+
+            String sqlResponse = "INSERT INTO request_responses (request_id, responder_id, responder_type, response, units_provided, notes) " +
+                                 "VALUES (?, ?, 'donor', ?, ?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sqlResponse)) {
+                pstmt.setInt(1, requestId);
+                pstmt.setInt(2, donorId);
+                pstmt.setString(3, response);
+                pstmt.setInt(4, accepted ? unitsNeeded : 0);
+                pstmt.setString(5, "Blood request " + status.toLowerCase() + " by donor: " + donorName);
+                pstmt.executeUpdate();
+            }
+
+            if (accepted) {
+                String sqlRequest = "UPDATE blood_requests SET status = 'accepted' WHERE id = ? AND status = 'pending'";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlRequest)) {
+                    pstmt.setInt(1, requestId);
+                    if (pstmt.executeUpdate() == 0) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+
+                String sqlDonor = "UPDATE donors SET is_available = 0 WHERE user_id = ?";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlDonor)) {
+                    pstmt.setInt(1, donorId);
+                    pstmt.executeUpdate();
+                }
+            }
+
+            if (requesterId > 0) {
+                String sqlEmail = "INSERT INTO email_notifications (user_id, subject, body, status) VALUES (?, ?, ?, 'queued')";
+                try (PreparedStatement pstmt = conn.prepareStatement(sqlEmail)) {
+                    pstmt.setInt(1, requesterId);
+                    pstmt.setString(2, "LifeLink - Blood Request " + status);
+                    pstmt.setString(3, "Dear User,\n\nYour blood request (ID: " + requestId + ") has been " + status.toLowerCase() + " by donor " + donorName + ".\n\nThank you,\nLifeLink Team");
+                    pstmt.executeUpdate();
+                }
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
+            e.printStackTrace();
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException e) { e.printStackTrace(); }
+            }
+        }
+        return false;
+    }
+
+    private List<BloodRequest> getDonationHistorySchema(int donorId) {
+        List<BloodRequest> history = new ArrayList<>();
+        String sql = "SELECT br.id as request_id, br.requester_id, br.units_needed, br.urgency, br.status, " +
+                     "br.requested_at as request_date, br.notes, bg.name as blood_group, " +
+                     "u.role as requester_role, u.full_name as user_full_name, " +
+                     "r.date_of_birth as recipient_dob, h.hospital_name as hospital_name, h.address as hospital_address " +
+                     "FROM request_responses rr " +
+                     "JOIN blood_requests br ON br.id = rr.request_id " +
+                     "JOIN blood_groups bg ON br.blood_group_id = bg.id " +
+                     "JOIN users u ON br.requester_id = u.id " +
+                     "LEFT JOIN recipients r ON u.id = r.user_id " +
+                     "LEFT JOIN hospitals h ON u.id = h.user_id " +
+                     "WHERE rr.responder_id = ? AND rr.responder_type = 'donor' " +
+                     "AND rr.response = 'accepted' AND br.status IN ('accepted', 'completed') " +
+                     "ORDER BY rr.responded_at DESC, br.requested_at DESC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, donorId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    BloodRequest br = mapDonorRequest(rs, donorId);
+                    history.add(br);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return history;
+    }
+
+    private BloodRequest mapDonorRequest(ResultSet rs, int donorId) throws SQLException {
+        BloodRequest br = new BloodRequest();
+        br.setId(rs.getInt("request_id"));
+        br.setDonorId(donorId);
+        br.setRequesterId(rs.getInt("requester_id"));
+        br.setBloodGroup(rs.getString("blood_group"));
+        br.setStatus(rs.getString("status"));
+        br.setRequestDate(rs.getTimestamp("request_date"));
+        br.setUnitsNeeded(rs.getInt("units_needed"));
+        br.setUrgency(rs.getString("urgency"));
+
+        String role = rs.getString("requester_role");
+        br.setRequesterRole(role != null ? role.toLowerCase() : "recipient");
+
+        parseNotesAndProfile(
+            br,
+            rs.getString("notes"),
+            rs.getString("user_full_name"),
+            rs.getString("hospital_name"),
+            rs.getString("hospital_address"),
+            rs.getDate("recipient_dob")
+        );
+        return br;
     }
 
     public boolean registerDonor(String email, String password, String name, String phone, String bloodGroup, String location) {

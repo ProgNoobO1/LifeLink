@@ -6,6 +6,16 @@
     User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
     boolean isLoggedIn = currentUser != null;
     boolean isAdmin = isLoggedIn && currentUser.getRole() == User.Role.ADMIN;
+    String accountUrl = request.getContextPath() + "/login";
+    if (isLoggedIn && currentUser.getRole() != null) {
+        if (currentUser.getRole() == User.Role.ADMIN) {
+            accountUrl = request.getContextPath() + "/admin/dashboard";
+        } else if (currentUser.getRole() == User.Role.RECIPIENT) {
+            accountUrl = request.getContextPath() + "/recipient/dashboard";
+        } else if (currentUser.getRole() == User.Role.DONOR) {
+            accountUrl = request.getContextPath() + "/donor/dashboard";
+        }
+    }
 
     // Fetch public stats
     UserDAO userDAO = new UserDAO();
@@ -512,7 +522,7 @@
                     <a href="<%= request.getContextPath() %>/admin/dashboard" class="btn btn-red btn-lg">Go to Dashboard</a>
                     <a href="<%= request.getContextPath() %>/admin/reports" class="btn btn-outline btn-lg">View Reports</a>
                 <% } else { %>
-                    <a href="<%= request.getContextPath() %>/login" class="btn btn-red btn-lg">My Account</a>
+                    <a href="<%= accountUrl %>" class="btn btn-red btn-lg">My Account</a>
                 <% } %>
             <% } else { %>
                 <a href="<%= request.getContextPath() %>/register" class="btn btn-red btn-lg">Become a Donor</a>
@@ -623,7 +633,7 @@
         <% if (isAdmin) { %>
             <a href="<%= request.getContextPath() %>/admin/dashboard" class="btn btn-white">Go to Dashboard</a>
         <% } else { %>
-            <a href="<%= request.getContextPath() %>/login" class="btn btn-white">My Account</a>
+            <a href="<%= accountUrl %>" class="btn btn-white">My Account</a>
         <% } %>
     <% } else { %>
         <a href="<%= request.getContextPath() %>/register" class="btn btn-white">Join LifeLink Today</a>

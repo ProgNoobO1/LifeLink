@@ -42,6 +42,10 @@ public class LoginServlet extends HttpServlet {
 
             HttpSession newSession = req.getSession(true);
             newSession.setAttribute("currentUser", user);
+            newSession.setAttribute("userId", user.getId());
+            if (user.getRole() != null) {
+                newSession.setAttribute("role", user.getRole().name());
+            }
             newSession.setMaxInactiveInterval(30 * 60); // 30 minutes
 
             redirectByRole(user, req, resp);
@@ -55,17 +59,18 @@ public class LoginServlet extends HttpServlet {
     private void redirectByRole(User user, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String contextPath = req.getContextPath();
         HttpSession session = req.getSession();
-        if (user.getRole() == User.Role.ADMIN) {
-            resp.sendRedirect(contextPath + "/admin/dashboard");
-        } else if (user.getRole() == User.Role.RECIPIENT) {
-            resp.sendRedirect(contextPath + "/recipient/dashboard");
-        } else if (user.getRole() == User.Role.DONOR) {
+        User.Role role = user.getRole();
+        if (role == User.Role.ADMIN) {
+            resp.sendRedirect(resp.encodeRedirectURL(contextPath + "/admin/dashboard"));
+        } else if (role == User.Role.RECIPIENT) {
+            resp.sendRedirect(resp.encodeRedirectURL(contextPath + "/recipient/dashboard"));
+        } else if (role == User.Role.DONOR) {
             if (user.getId() != null) {
                 session.setAttribute("donorId", user.getId().intValue());
             }
-            resp.sendRedirect(contextPath + "/donor/dashboard");
+            resp.sendRedirect(resp.encodeRedirectURL(contextPath + "/donor/dashboard"));
         } else {
-            resp.sendRedirect(contextPath + "/index.jsp");
+            resp.sendRedirect(resp.encodeRedirectURL(contextPath + "/index.jsp"));
         }
     }
 }

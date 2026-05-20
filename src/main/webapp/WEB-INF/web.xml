@@ -178,6 +178,15 @@
       <servlet-name>RecipientDashboardServlet</servlet-name>
       <url-pattern>/recipient/dashboard</url-pattern>
     </servlet-mapping>
+
+    <servlet>
+      <servlet-name>DonorServlet</servlet-name>
+      <servlet-class>com.lifelink.servlet.DonorServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>DonorServlet</servlet-name>
+      <url-pattern>/donor/*</url-pattern>
+    </servlet-mapping>
   
     <!-- Listeners -->
     <listener>

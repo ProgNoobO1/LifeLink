@@ -1,4 +1,4 @@
-package com.lifelink.controllers;
+package com.lifelink.servlet;
 
 import com.lifelink.dao.DonorDAO;
 import com.lifelink.model.BloodRequest;
@@ -7,7 +7,6 @@ import com.lifelink.model.Notification;
 import com.lifelink.model.User;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -15,7 +14,6 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/donor/*")
 public class DonorServlet extends HttpServlet {
 
     private DonorDAO donorDAO;
@@ -34,22 +32,17 @@ public class DonorServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
         if (path == null) path = "/dashboard";
-        
-        // Authenticated user check - adapted for Donor-only branch
-        HttpSession session = request.getSession();
-        Integer donorIdObj = (Integer) session.getAttribute("donorId");
-        if (donorIdObj == null) {
-            User user = (User) session.getAttribute("currentUser");
-            if (user != null && user.getRole() == User.Role.DONOR) {
-                donorIdObj = user.getId().intValue();
-                session.setAttribute("donorId", donorIdObj);
-            } else {
-                donorIdObj = 1; // Default fallback for standalone / no-auth mode
-                session.setAttribute("donorId", donorIdObj);
-            }
+
+        HttpSession session = request.getSession(false);
+        User user = getLoggedInDonor(session);
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
-        
-        int donorId = donorIdObj;
+
+        int donorId = user.getId().intValue();
+        session.setAttribute("donorId", donorId);
+        request.setAttribute("currentUser", user);
 
         switch (path) {
             case "/dashboard":
@@ -98,20 +91,15 @@ public class DonorServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
-        HttpSession session = request.getSession();
-        Integer donorIdObj = (Integer) session.getAttribute("donorId");
-        if (donorIdObj == null) {
-            User user = (User) session.getAttribute("currentUser");
-            if (user != null && user.getRole() == User.Role.DONOR) {
-                donorIdObj = user.getId().intValue();
-                session.setAttribute("donorId", donorIdObj);
-            } else {
-                donorIdObj = 1;
-                session.setAttribute("donorId", donorIdObj);
-            }
+        HttpSession session = request.getSession(false);
+        User user = getLoggedInDonor(session);
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
-        
-        int donorId = donorIdObj;
+
+        int donorId = user.getId().intValue();
+        session.setAttribute("donorId", donorId);
 
         switch (path) {
             case "/profile":
@@ -162,6 +150,21 @@ public class DonorServlet extends HttpServlet {
         }
         
         return notifications;
+    }
+
+    private User getLoggedInDonor(HttpSession session) {
+        if (session == null) {
+            return null;
+        }
+        Object currentUser = session.getAttribute("currentUser");
+        if (!(currentUser instanceof User)) {
+            return null;
+        }
+        User user = (User) currentUser;
+        if (user.getId() == null || user.getRole() != User.Role.DONOR) {
+            return null;
+        }
+        return user;
     }
 
     private void showDashboard(HttpServletRequest request, HttpServletResponse response, int donorId) throws ServletException, IOException {
@@ -276,15 +279,13 @@ public class DonorServlet extends HttpServlet {
     }
 
     private void updateRequestStatus(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        HttpSession session = request.getSession();
-        Integer donorIdObj = (session != null) ? (Integer) session.getAttribute("donorId") : null;
-        if (donorIdObj == null) {
-            donorIdObj = 1;
-            if (session != null) {
-                session.setAttribute("donorId", donorIdObj);
-            }
+        HttpSession session = request.getSession(false);
+        User user = getLoggedInDonor(session);
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
         }
-        int donorId = donorIdObj;
+        int donorId = user.getId().intValue();
         int requestId = Integer.parseInt(request.getParameter("requestId"));
         String status = request.getParameter("status"); // 'Accepted' or 'Rejected'
         boolean success = donorDAO.updateRequestStatus(requestId, donorId, status);
