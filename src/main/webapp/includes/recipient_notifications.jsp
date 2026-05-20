@@ -48,6 +48,9 @@
     String currentPath = request.getRequestURI();
     String queryString = request.getQueryString();
     String returnUrl = currentPath + (queryString != null ? "?" + queryString : "");
+    if (currentPath != null && currentPath.endsWith("/views/recipient/recipient_dashboard.jsp")) {
+        returnUrl = request.getContextPath() + "/recipient/dashboard";
+    }
     DateTimeFormatter recipientNotifFmt = DateTimeFormatter.ofPattern("MMM d, h:mm a");
 %>
 <style>
