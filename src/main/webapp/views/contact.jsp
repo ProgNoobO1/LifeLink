@@ -634,7 +634,7 @@
 ================================================================ --%>
 <nav class="navbar">
     <%-- Logo --%>
-    <a href="home.jsp" class="navbar-brand">
+    <a href="Home.jsp" class="navbar-brand">
         <div class="brand-icon"><i class="fa-solid fa-droplet"></i></div>
         LifeLink
     </a>
