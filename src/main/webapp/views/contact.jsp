@@ -641,8 +641,8 @@
 
     <%-- Navigation Links --%>
     <ul class="navbar-links">
-        <li><a href="home.jsp">Home</a></li>
-        <li><a href="about.jsp">About</a></li>
+        <li><a href="Home.jsp">Home</a></li>
+        <li><a href="aboutus.jsp">About</a></li>
         <li><a href="contact.jsp" class="active">Contact</a></li>
     </ul>
 
